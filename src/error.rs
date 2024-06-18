@@ -15,8 +15,10 @@ pub struct AssertError {
 impl AssertError {
     /// Creates a new assertion error. Attach fields using the
     /// [`Self::with_field`] method.
-    pub const fn new() -> Self {
-        Self { fields: Vec::new() }
+    pub fn new(expectation: impl Into<Cow<'static, str>>) -> Self {
+        Self {
+            fields: vec![("expected", expectation.into())],
+        }
     }
 
     /// Attaches a custom field to the error. This will appear in the error when

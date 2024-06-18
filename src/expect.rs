@@ -126,8 +126,7 @@ impl<T> Assertable for TryExpectationRoot<T> {
         if satisfied {
             Ok(())
         } else {
-            let error = AssertError::new()
-                .with_field("expected", expectation.to_string())
+            let error = AssertError::new(expectation.to_string())
                 .with_field("at", self.source_info.to_string())
                 .with_field("original target", self.target_source);
             Err(error)
