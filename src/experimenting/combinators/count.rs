@@ -6,14 +6,14 @@ use crate::Assertable;
 /// in the target.
 #[derive(Clone, Debug)]
 pub struct CountCombinator<Inner> {
-    inner: Inner,
+    prev: Inner,
 }
 
 impl<Inner> CountCombinator<Inner> {
     /// Creates a new combinator which wraps an inner [`Assertable`].
     #[inline]
-    pub fn new(inner: Inner) -> Self {
-        Self { inner }
+    pub fn new(prev: Inner) -> Self {
+        Self { prev }
     }
 }
 
@@ -29,7 +29,7 @@ where
     where
         F: FnMut(Self::Target) -> bool,
     {
-        self.inner.to_satisfy(
+        self.prev.to_satisfy(
             format_args!("the length satisfies: {expectation}"),
             |values| f(values.into_iter().count()),
         )

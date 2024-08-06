@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-use crate::{AssertError, Assertable};
+use crate::{Assertable, AssertionError};
 
 /// Begins an assertion.
 ///
@@ -47,8 +47,6 @@ macro_rules! expect {
         )
     };
 }
-
-// TODO: `check_if!(...)` macro that returns a result instead of panicking
 
 /// The root of an expectation. Other expectations are built on top of this.
 #[derive(Clone, Debug)]
@@ -116,7 +114,7 @@ pub struct TryExpectationRoot<T> {
 
 impl<T> Assertable for TryExpectationRoot<T> {
     type Target = T;
-    type Result = Result<(), AssertError>;
+    type Result = Result<(), AssertionError>;
 
     fn to_satisfy<F>(self, expectation: impl Display, mut f: F) -> Self::Result
     where
@@ -126,7 +124,7 @@ impl<T> Assertable for TryExpectationRoot<T> {
         if satisfied {
             Ok(())
         } else {
-            let error = AssertError::new(expectation.to_string())
+            let error = AssertionError::new(expectation.to_string())
                 .with_field("at", self.source_info.to_string())
                 .with_field("original target", self.target_source);
             Err(error)

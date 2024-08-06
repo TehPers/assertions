@@ -15,7 +15,6 @@ mod nth;
 mod ok;
 mod some;
 mod when_called;
-// mod when_ready;
 
 pub use all::*;
 pub use any::*;
@@ -28,4 +27,3 @@ pub use nth::*;
 pub use ok::*;
 pub use some::*;
 pub use when_called::*;
-// pub use when_ready::*;
