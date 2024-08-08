@@ -4,7 +4,7 @@ use std::fmt::{Display, Formatter};
 #[doc(hidden)]
 macro_rules! source_loc {
     () => {{
-        const SOURCE_LOC: crate::metadata::SourceLoc = $crate::metadata::SourceLoc::new(
+        const SOURCE_LOC: $crate::metadata::SourceLoc = $crate::metadata::SourceLoc::new(
             ::core::module_path!(),
             ::core::file!(),
             ::core::line!(),
@@ -25,6 +25,7 @@ pub struct SourceLoc {
 
 impl SourceLoc {
     #[doc(hidden)]
+    #[must_use]
     pub const fn new(
         module_path: &'static str,
         file: &'static str,
@@ -41,24 +42,28 @@ impl SourceLoc {
 
     /// The [`module_path`] of the source code.
     #[inline]
+    #[must_use]
     pub const fn module_path(&self) -> &'static str {
         self.module_path
     }
 
     /// The name of the source code file.
     #[inline]
+    #[must_use]
     pub const fn file(&self) -> &'static str {
         self.file
     }
 
     /// The line within the source code file.
     #[inline]
+    #[must_use]
     pub const fn line(&self) -> u32 {
         self.line
     }
 
     /// The column within the line of source code.
     #[inline]
+    #[must_use]
     pub const fn column(&self) -> u32 {
         self.column
     }
@@ -68,7 +73,7 @@ impl Display for SourceLoc {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{module} [{file}:{line}:{column}]",
+            "{file}:{line}:{column} [{module}]",
             file = self.file,
             line = self.line,
             column = self.column,

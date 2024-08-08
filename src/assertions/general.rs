@@ -8,12 +8,10 @@
 //! importing the prelude will import all the assertions and modifiers from this
 //! module.
 
-mod comparisons;
-mod finalizable_result;
-mod invertible_result;
+mod assertions;
 mod modifiers;
+mod outputs;
 
-pub use comparisons::*;
-pub use finalizable_result::*;
-pub use invertible_result::*;
+pub use assertions::*;
 pub use modifiers::*;
+pub use outputs::*;

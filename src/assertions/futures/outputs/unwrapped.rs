@@ -6,21 +6,20 @@ use std::{
 
 use pin_project_lite::pin_project;
 
-use crate::assertions::general::FinalizableResult;
+use crate::assertions::general::UnwrappableOutput;
 
 pin_project! {
-    /// Finalizes an asynchronous output.
+    /// Unwraps an asynchronous output.
     #[derive(Clone, Debug)]
-    pub struct FinalizedOutputFuture<F> {
+    pub struct UnwrappedOutputFuture<F> {
         #[pin]
         inner: F,
     }
 }
 
-impl<F> FinalizedOutputFuture<F>
+impl<F> UnwrappedOutputFuture<F>
 where
-    F: Future,
-    F::Output: FinalizableResult,
+    F: Future<Output: UnwrappableOutput>,
 {
     /// Create a new finalized output future.
     #[inline]
@@ -29,17 +28,16 @@ where
     }
 }
 
-impl<F> Future for FinalizedOutputFuture<F>
+impl<F> Future for UnwrappedOutputFuture<F>
 where
-    F: Future,
-    F::Output: FinalizableResult,
+    F: Future<Output: UnwrappableOutput>,
 {
-    type Output = <F::Output as FinalizableResult>::Finalized;
+    type Output = <F::Output as UnwrappableOutput>::Unwrapped;
 
     #[inline]
     fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
         let projected = self.project();
         let output = ready!(projected.inner.poll(cx));
-        Poll::Ready(output.finalize())
+        Poll::Ready(output.unwrap())
     }
 }

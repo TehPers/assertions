@@ -93,10 +93,7 @@ impl<T> Annotated<T> {
     /// Gets the string representation of this value.
     #[inline]
     pub fn as_str(&self) -> &str {
-        self.string_repr
-            .as_ref()
-            .map(String::as_str)
-            .unwrap_or(self.stringified)
+        self.string_repr.as_deref().unwrap_or(self.stringified)
     }
 }
 

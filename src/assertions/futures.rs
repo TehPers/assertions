@@ -7,14 +7,8 @@
 //! This module also contains types that can be useful for writing your own
 //! asynchronous assertions and modifiers, if needed.
 
-mod finalized_output_future;
-mod inverted_output_future;
-mod merged_output_future;
 mod modifiers;
-mod when_ready_future;
+mod outputs;
 
-pub use finalized_output_future::*;
-pub use inverted_output_future::*;
-pub use merged_output_future::*;
 pub use modifiers::*;
-pub use when_ready_future::*;
+pub use outputs::*;

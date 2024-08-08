@@ -161,6 +161,24 @@
 #[macro_export]
 macro_rules! expect {
     ($($tokens:tt)*) => {
+        $crate::assertions::general::UnwrappableOutput::unwrap(
+            $crate::__expect_inner!($($tokens)*),
+        )
+    };
+}
+
+/// Same as [`expect!`], but returns the result itself rather than panicking on
+/// failure.
+///
+/// More specifically, this does not finalize the output of the assertion. The
+/// syntax is exactly the same as [`expect!`] (and async assertions should still
+/// be `.await`ed as usual), but the output from it will be an
+/// [`AssertionResult`](crate::AssertionResult) instead.
+///
+/// See [`expect!`] for more information on how to use this macro.
+#[macro_export]
+macro_rules! try_expect {
+    ($($tokens:tt)*) => {
         $crate::__expect_inner!($($tokens)*)
     };
 }
@@ -173,7 +191,9 @@ macro_rules! __expect_inner {
         $subject:expr,
         $($assertions:tt)*
     ) => {{
+        let subject = $crate::annotated!($subject);
         let cx = $crate::assertions::AssertionContext::__new(
+            ::std::string::ToString::to_string(&subject),
             $crate::source_loc!(),
             $crate::__expect_inner!(
                 @build_ctx_frames,
@@ -181,16 +201,29 @@ macro_rules! __expect_inner {
                 $($assertions)*
             ),
         );
-        let result = $crate::__expect_inner!(
+        let (root, _key) = $crate::assertions::general::__root(cx, subject);
+        $crate::__expect_inner!(
             @build_assertion,
-            cx,
-            $subject,
+            root,
+            _key,
             $($assertions)*
-        );
-        $crate::assertions::general::FinalizableResult::finalize(result)
+        )
     }};
 
     // Build context frame names (from modifier/assertion names)
+    (
+        // Base case
+        @build_ctx_frames,
+        [$($frames:expr),*],
+        $frame_name:ident $(($($_:tt)*))?
+        $(,)?
+    ) => {{
+        const FRAMES: &'static [&'static str] = &[
+            $($frames,)*
+            ::core::stringify!($frame_name),
+        ];
+        FRAMES
+    }};
     (
         // Recursive case
         @build_ctx_frames,
@@ -204,339 +237,118 @@ macro_rules! __expect_inner {
             $($assertions)*
         )
     };
-    (
-        // Base case
-        @build_ctx_frames,
-        [$($frames:expr),*],
-        $frame_name:ident $(($($_:tt)*))?
-    ) => {{
-        const FRAMES: &'static [&'static str] = &[
-            $($frames,)*
-            ::core::stringify!($frame_name),
-        ];
-        FRAMES
-    }};
 
     // Build assertion (chain modifiers and final assertion)
     (
-        // Recursive case (with params)
-        @build_assertion,
-        $cx:expr,
-        $subject:expr,
-        $assertion:ident($($param:expr),* $(,)?),
-        $($rest:tt)*
-    ) => {
-        $crate::__expect_inner!(
-            @annotate_assertion,
-            $cx,
-            $subject,
-            |cx, subject| {
-                let assertion = $assertion($($crate::annotated!($param),)*);
-                assertion(cx, subject, |cx, no_debug_impl| {
-                    $crate::__expect_inner!(
-                        @build_assertion,
-                        cx,
-                        no_debug_impl,
-                        $($rest)*
-                    )
-                })
-            }
-        )
-    };
-    (
-        // Recursive case (without params)
-        @build_assertion,
-        $cx:expr,
-        $subject:expr,
-        $assertion:ident,
-        $($rest:tt)*
-    ) => {
-        $crate::__expect_inner!(
-            @annotate_assertion,
-            $cx,
-            $subject,
-            |cx, subject| {
-                $assertion(cx, subject, |cx, no_debug_impl| {
-                    $crate::__expect_inner!(
-                        @build_assertion,
-                        cx,
-                        no_debug_impl,
-                        $($rest)*
-                    )
-                })
-            }
-        )
-    };
-    (
         // Base case (with params)
         @build_assertion,
-        $cx:expr,
-        $subject:expr,
-        $assertion:ident($($param:expr),* $(,)?) $(,)?
-    ) => {
-        $crate::__expect_inner!(
-            @annotate_assertion,
-            $cx,
-            $subject,
-            |cx, subject| {
-                let assertion = $assertion($($crate::annotated!($param),)*);
-                assertion(cx, subject)
-            }
+        $chain:expr,
+        $key:expr,
+        $assertion:ident($($param:expr),* $(,)?)
+        $(,)?
+    ) => {{
+        let (chain, _key) = $crate::__expect_inner!(@annotate, $chain, $key);
+        let assertion = $assertion($($crate::annotated!($param),)*);
+        $crate::assertions::AssertionModifier::apply(
+            chain,
+            assertion,
         )
-    };
+    }};
     (
         // Base case (without params)
         @build_assertion,
-        $cx:expr,
-        $subject:expr,
-        $assertion:ident $(,)?
-    ) => {
-        $crate::__expect_inner!(
-            @annotate_assertion,
-            $cx,
-            $subject,
-            |cx, subject| {
-                let assertion = $assertion;
-                assertion(cx, subject)
-            }
+        $chain:expr,
+        $key:expr,
+        $assertion:ident
+        $(,)?
+    ) => {{
+        let (chain, _key) = $crate::__expect_inner!(@annotate, $chain, $key);
+        let assertion = $assertion();
+        $crate::assertions::AssertionModifier::apply(
+            chain,
+            assertion,
         )
-    };
-
-    // Wrap assertion and annotate intermediate value
+    }};
     (
-        @annotate_assertion,
-        $cx:expr,
-        $subject:expr,
-        |$cx_param:pat_param, $subject_param:pat_param| $assertion:expr
-    ) => {
-        $crate::assertions::__annotate_assertion(
-            $cx,
-            $crate::annotated!($subject),
-            |$cx_param, $subject_param| $assertion,
+        // Recursive case (with params)
+        @build_assertion,
+        $chain:expr,
+        $key:expr,
+        $modifier:ident($($param:expr),* $(,)?),
+        $($rest:tt)*
+    ) => {{
+        let (chain, _key) = $crate::__expect_inner!(@annotate, $chain, $key);
+        let modifier = $modifier($($crate::annotated!($param),)*);
+        let (chain, _key) = modifier(chain, _key);
+        $crate::__expect_inner!(@build_assertion, chain, _key, $($rest)*)
+    }};
+    (
+        // Recursive case (without params)
+        @build_assertion,
+        $chain:expr,
+        $key:expr,
+        $modifier:ident,
+        $($rest:tt)*
+    ) => {{
+        let (chain, _key) = $crate::__expect_inner!(@annotate, $chain, $key);
+        let (chain, _key) = $modifier(chain, _key);
+        $crate::__expect_inner!(@build_assertion, chain, _key, $($rest)*)
+    }};
+
+    // Annotate the value being passed down the chain
+    (@annotate, $chain:expr, $key:expr) => {
+        $crate::assertions::general::__annotate(
+            $key,
+            $chain,
+            |not_debug| $crate::annotated!(not_debug),
         )
     };
 }
 
 #[cfg(test)]
 mod tests {
-    use core::future::ready;
-    use std::marker::PhantomData;
+    use std::future::ready;
 
-    use crate::{
-        assertions::{
-            general::{FinalizableResult, InvertibleResult},
-            Assertion, AssertionContext, AssertionModifier,
-        },
-        metadata::Annotated,
-        prelude::*,
-        AssertionResult,
-    };
+    use crate::prelude::*;
 
-    #[derive(PartialEq)]
+    #[derive(Clone, PartialEq)]
     struct NotDebug<T>(T);
 
     #[tokio::test]
+    // #[ignore]
     async fn test_debugging() {
         debugging().await;
     }
 
     async fn debugging() {
+        // expect!(ready(1), when_ready, to_equal(2)).await;
+        // expect!([1, 2, 3], count, not, to_equal(3));
+        // expect!([1, 2, 3], any, to_equal(4));
+
+        expect!("blah", to_match_regex(r"\d+"));
+
         expect!(
-            [NotDebug(1), NotDebug(2), NotDebug(3)],
-            all,
-            map(|x: NotDebug<_>| x.0),
-            not,
-            to_be_less_than(3)
+            "Hello, world!",
+            map(|s: &str| format!("{} {} {}", s.to_uppercase(), s.to_lowercase(), s)),
+            to_contain_substr("not present in this text because this is a really long substring"),
         );
 
-        expect!([ready(1), ready(2)], all, when_ready, to_be_less_than(2)).await;
-    }
+        expect!(
+            ready([NotDebug(1), NotDebug(2), NotDebug(3)]),
+            when_ready,
+            any,
+            not,
+            map(|NotDebug(x)| x),
+            to_be_less_than(4)
+        )
+        .await;
 
-    // async fn debugging2() {
-    //     // expect!(1, not, to_equal(0));
+        // expect!(ready([1, 2, 3]), when_ready, nth(3), to_equal(3)).await;
+        // expect!(ready(1), when_ready, to_satisfy(|n| n < 0)).await;
 
-    //     let x = 1;
-    //     expect!(1, not, to_equal(x));
+        // let res = try_expect!(ready(1), when_ready, to_satisfy(|n| n < 0)).await;
+        // res.into_result().unwrap();
 
-    //     {
-    //         const SOURCE_LOC: crate::metadata::SourceLoc = crate::source_loc!();
-    //         let cx = crate::assertions::AssertionContext::__new(&SOURCE_LOC, {
-    //             const FRAMES: &'static [&'static str] = &[("not"), "to_equal"];
-    //             FRAMES
-    //         });
-    //         let result =
-    //             crate::assertions::__annotate_assertion(cx, crate::annotated!(1), |cx, subject| {
-    //                 not(cx, subject, |cx, no_debug_impl| {
-    //                     crate::assertions::__annotate_assertion(
-    //                         cx,
-    //                         crate::annotated!(no_debug_impl),
-    //                         |cx, subject| {
-    //                             let assertion = to_equal(crate::annotated!(0));
-    //                             assertion(cx, subject)
-    //                         },
-    //                     )
-    //                 })
-    //             });
-    //         crate::assertions::general::FinalizableResult::finalize(result)
-    //     }
-
-    //     /*
-    //     {
-    //         let subject = crate::annotated!(1);
-    //         let assertion = __annotate_assertion_begin(
-    //             &subject,
-    //             |x| crate::annotated!(x),
-    //         );
-    //         let assertion = assertion.apply(
-    //             not().apply(
-    //                 __annotate_assertion2(
-    //                 to_equal(0)
-    //             )
-    //         );
-    //     }
-    //     */
-    // }
-
-    #[test]
-    fn debugging3() {
-        let _res = {
-            let cx = AssertionContext::__new(
-                crate::source_loc!(),
-                &["not2", "not2", "not2", "to_equal2"],
-            );
-
-            // TODO
-            let chain = Root(1);
-            let chain = annotate_input(|x| crate::annotated!(x))(chain);
-            let chain = not2(chain);
-            let chain = annotate_input(|x| crate::annotated!(x))(chain);
-            let chain = not2(chain);
-            let chain = annotate_input(|x| crate::annotated!(x))(chain);
-            let chain = not2(chain);
-            let chain = annotate_input(|x| crate::annotated!(x))(chain);
-            let assert = to_equal2(1);
-            let res = chain.apply(cx, assert);
-
-            res.finalize()
-        };
-    }
-
-    struct Root<T>(T);
-
-    impl<T, A> AssertionModifier<A> for Root<T>
-    where
-        A: Assertion<T>,
-    {
-        type Output = A::Output;
-
-        fn apply(self, cx: AssertionContext, assertion: A) -> Self::Output {
-            assertion.execute(cx, self.0)
-        }
-    }
-
-    fn annotate_input<T, M>(
-        annotate: fn(T) -> Annotated<T>,
-    ) -> impl FnOnce(M) -> AnnotateModifier<T, M> {
-        move |prev| AnnotateModifier { prev, annotate }
-    }
-
-    #[derive(Clone, Debug)]
-    struct AnnotateModifier<T, M> {
-        prev: M,
-        annotate: fn(T) -> Annotated<T>,
-    }
-
-    impl<T, M, A> AssertionModifier<A> for AnnotateModifier<T, M>
-    where
-        M: AssertionModifier<AnnotateAssertion<A, T>>,
-    {
-        type Output = M::Output;
-
-        fn apply(self, cx: AssertionContext, assertion: A) -> Self::Output {
-            self.prev.apply(
-                cx,
-                AnnotateAssertion {
-                    next: assertion,
-                    annotate: self.annotate,
-                },
-            )
-        }
-    }
-
-    #[derive(Clone, Debug)]
-    struct AnnotateAssertion<A, T> {
-        next: A,
-        annotate: fn(T) -> Annotated<T>,
-    }
-
-    impl<A, T> Assertion<T> for AnnotateAssertion<A, T>
-    where
-        A: Assertion<T>,
-    {
-        type Output = A::Output;
-
-        fn execute(self, cx: AssertionContext, value: T) -> Self::Output {
-            self.next.execute(cx.next(), value)
-        }
-    }
-
-    #[inline]
-    fn not2<T, M>(prev: M) -> Not2Modifier<T, M> {
-        Not2Modifier(prev, PhantomData)
-    }
-
-    #[derive(Clone, Debug)]
-    struct Not2Modifier<T, M>(M, PhantomData<fn(T)>);
-
-    impl<T, M, A> AssertionModifier<A> for Not2Modifier<T, M>
-    where
-        A: Assertion<T>,
-        A::Output: InvertibleResult,
-        M: AssertionModifier<Not2Assertion<A>>,
-    {
-        type Output = M::Output;
-
-        #[inline]
-        fn apply(self, cx: AssertionContext, assertion: A) -> Self::Output {
-            self.0.apply(cx, Not2Assertion(assertion))
-        }
-    }
-
-    #[derive(Clone, Debug)]
-    struct Not2Assertion<A>(A);
-
-    impl<A, T> Assertion<T> for Not2Assertion<A>
-    where
-        A: Assertion<T>,
-        A::Output: InvertibleResult,
-    {
-        type Output = <A::Output as InvertibleResult>::Inverted;
-
-        #[inline]
-        fn execute(self, cx: AssertionContext, value: T) -> Self::Output {
-            self.0.execute(cx.clone(), value).invert(cx)
-        }
-    }
-
-    fn to_equal2<U>(value: U) -> ToEqual2Assertion<U> {
-        ToEqual2Assertion(value)
-    }
-
-    #[derive(Clone, Debug)]
-    struct ToEqual2Assertion<U>(U);
-
-    impl<T, U> Assertion<T> for ToEqual2Assertion<U>
-    where
-        T: PartialEq<U>,
-    {
-        type Output = AssertionResult;
-
-        fn execute(self, cx: AssertionContext, value: T) -> Self::Output {
-            if value == self.0 {
-                Ok(())
-            } else {
-                Err(cx.fail("not equal"))
-            }
-        }
+        // expect!([ready(1), ready(2)], all, when_ready, to_be_less_than(2)).await;
     }
 }

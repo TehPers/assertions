@@ -9,18 +9,24 @@ categories = [
     "development-tools::debugging",
     "development-tools::testing",
 ]
-keywords = ["assert", "assertions", "matchers", "testing"]
+keywords = ["assert", "assertions", "async", "matchers", "testing"]
 
 [features]
-default = ["futures"]
-futures = ["dep:futures"]
+default = ["colors", "futures", "regex"]
+futures = ["dep:futures", "dep:pin-project-lite"]
+colors = ["dep:owo-colors"]
+regex = ["dep:regex"]
 
 [dependencies]
 futures = { version = "0.3.30", optional = true, default-features = false, features = [
     "std",
     "async-await",
 ] }
-pin-project-lite = "0.2.14"
+owo-colors = { version = "4.0.0", features = [
+    "supports-colors",
+], optional = true }
+pin-project-lite = { version = "0.2.14", optional = true }
+regex = { version = "1.10.6", optional = true }
 
 [dev-dependencies]
 futures = { version = "0.3.30", default-features = false, features = [
