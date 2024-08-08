@@ -73,7 +73,7 @@ where
     #[inline]
     fn execute(self, cx: AssertionContext, subject: O) -> Self::Output {
         let Some(subject) = subject.some() else {
-            return cx.fail("subject is None");
+            return cx.fail("received None");
         };
         self.next.execute(cx, subject)
     }

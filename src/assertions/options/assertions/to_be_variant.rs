@@ -61,8 +61,8 @@ where
         cx.annotate("expected", format_args!("{:?}", self.expected));
 
         match self.expected {
-            Variant::Some => cx.pass_if(subject.some().is_some(), "subject is None"),
-            Variant::None => cx.pass_if(subject.some().is_none(), "subject is Some"),
+            Variant::Some => cx.pass_if(subject.some().is_some(), "received None"),
+            Variant::None => cx.pass_if(subject.some().is_none(), "received Some"),
         }
     }
 }

@@ -49,7 +49,7 @@ where
 
         cx.pass_if(
             self.regex.is_match(subject.as_ref()),
-            "subject didn't match pattern",
+            "didn't match pattern",
         )
     }
 }

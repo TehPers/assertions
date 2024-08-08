@@ -53,7 +53,7 @@ where
         cx.annotate("predicate", &self.predicate);
         cx.pass_if(
             (self.predicate.into_inner())(subject),
-            "subject did not satisfy predicate",
+            "did not satisfy predicate",
         )
     }
 }

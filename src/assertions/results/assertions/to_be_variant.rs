@@ -65,8 +65,8 @@ where
         cx.annotate("expected", format_args!("{:?}", self.expected));
 
         match self.expected {
-            Variant::Ok => cx.pass_if(subject.ok().is_some(), "subject is Err"),
-            Variant::Err => cx.pass_if(subject.err().is_some(), "subject is Ok"),
+            Variant::Ok => cx.pass_if(subject.ok().is_some(), "received Err"),
+            Variant::Err => cx.pass_if(subject.err().is_some(), "received Ok"),
         }
     }
 }

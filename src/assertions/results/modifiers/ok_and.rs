@@ -72,7 +72,7 @@ where
     #[inline]
     fn execute(self, cx: AssertionContext, subject: R) -> Self::Output {
         let Some(subject) = subject.ok() else {
-            return cx.fail("subject is Err");
+            return cx.fail("received Err");
         };
         self.next.execute(cx, subject)
     }

@@ -133,9 +133,6 @@ where
             (Ordering::Greater, false) => subject > boundary,
             (Ordering::Equal, _) => return cx.fail("use to_equal instead"),
         };
-        cx.pass_if(
-            success,
-            format_args!("subject not {} boundary", self.cmp_message),
-        )
+        cx.pass_if(success, format_args!("not {} boundary", self.cmp_message))
     }
 }
