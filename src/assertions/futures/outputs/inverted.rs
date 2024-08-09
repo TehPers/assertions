@@ -20,8 +20,7 @@ pin_project! {
 
 impl<F> InvertedOutputFuture<F>
 where
-    F: Future,
-    F::Output: InvertibleOutput,
+    F: Future<Output: InvertibleOutput>,
 {
     /// Creates a new inverted output future.
     #[inline]
@@ -35,8 +34,7 @@ where
 
 impl<F> Future for InvertedOutputFuture<F>
 where
-    F: Future,
-    F::Output: InvertibleOutput,
+    F: Future<Output: InvertibleOutput>,
 {
     type Output = <F::Output as InvertibleOutput>::Inverted;
 
@@ -45,5 +43,17 @@ where
         let output = ready!(projected.inner.poll(cx));
         let cx = projected.cx.take().expect("poll after ready");
         Poll::Ready(output.invert(cx))
+    }
+}
+
+impl<F> InvertibleOutput for F
+where
+    F: Future<Output: InvertibleOutput>,
+{
+    type Inverted = InvertedOutputFuture<F>;
+
+    #[inline]
+    fn invert(self, cx: AssertionContext) -> Self::Inverted {
+        InvertedOutputFuture::new(cx, self)
     }
 }

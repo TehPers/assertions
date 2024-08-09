@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use crate::assertions::{key, Assertion, AssertionContext, AssertionModifier, SubjectKey};
 
 /// Counts the length of the subject, and executes an assertion on the result.
@@ -14,24 +12,17 @@ use crate::assertions::{key, Assertion, AssertionContext, AssertionModifier, Sub
 /// will not complete (unless it panics for another reason). See the iterator
 /// method for more information.
 #[inline]
-pub fn count<T, M>(prev: M, _: SubjectKey<T>) -> (CountModifier<T, M>, SubjectKey<usize>) {
-    (
-        CountModifier {
-            prev,
-            marker: PhantomData,
-        },
-        key(),
-    )
+pub fn count<T, M>(prev: M, _: SubjectKey<T>) -> (CountModifier<M>, SubjectKey<usize>) {
+    (CountModifier { prev }, key())
 }
 
 /// Modifier for [`count()`].
 #[derive(Clone, Debug)]
-pub struct CountModifier<T, M> {
+pub struct CountModifier<M> {
     prev: M,
-    marker: PhantomData<fn(T)>,
 }
 
-impl<T, M, A> AssertionModifier<A> for CountModifier<T, M>
+impl<M, A> AssertionModifier<A> for CountModifier<M>
 where
     M: AssertionModifier<CountAssertion<A>>,
 {

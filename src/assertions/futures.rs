@@ -6,6 +6,15 @@
 //!
 //! This module also contains types that can be useful for writing your own
 //! asynchronous assertions and modifiers, if needed.
+//!
+//! ```
+//! # use expecters::prelude::*;
+//! use std::future::ready;
+//! # #[tokio::main(flavor = "current_thread")]
+//! # async fn main() {
+//! expect!(ready(1), when_ready, to_equal(1)).await;
+//! # }
+//! ```
 
 mod modifiers;
 mod outputs;

@@ -1,3 +1,5 @@
+//! Assertions and modifiers for tests that involve strings.
+
 mod assertions;
 mod modifiers;
 

@@ -34,21 +34,3 @@ impl UnwrappableOutput for AssertionResult {
         }
     }
 }
-
-#[cfg(feature = "futures")]
-const _: () = {
-    use std::future::Future;
-
-    use crate::assertions::futures::UnwrappedOutputFuture;
-
-    impl<F> UnwrappableOutput for F
-    where
-        F: Future<Output: UnwrappableOutput>,
-    {
-        type Unwrapped = UnwrappedOutputFuture<F>;
-
-        fn unwrap(self) -> Self::Unwrapped {
-            UnwrappedOutputFuture::new(self)
-        }
-    }
-};

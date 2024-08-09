@@ -48,27 +48,6 @@ impl MergeableOutput for AssertionResult {
     }
 }
 
-#[cfg(feature = "futures")]
-const _: () = {
-    use std::future::Future;
-
-    use crate::assertions::futures::MergedOutputsFuture;
-
-    impl<F> MergeableOutput for F
-    where
-        F: Future<Output: MergeableOutput>,
-    {
-        type Merged = MergedOutputsFuture<F>;
-
-        fn merge<I>(cx: AssertionContext, strategy: MergeStrategy, outputs: I) -> Self::Merged
-        where
-            I: IntoIterator<Item = Self>,
-        {
-            MergedOutputsFuture::new(cx, strategy, outputs)
-        }
-    }
-};
-
 /// A strategy for merging outputs.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum MergeStrategy {

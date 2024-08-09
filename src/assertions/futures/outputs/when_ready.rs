@@ -10,6 +10,8 @@ use crate::assertions::{Assertion, AssertionContext};
 
 pin_project! {
     /// A [`Future`] which executes an assertion when its subject is ready.
+    ///
+    /// Created by [`when_ready`](crate::prelude::when_ready).
     #[derive(Clone, Debug)]
     pub struct WhenReadyFuture<T, A>
     where

@@ -26,7 +26,7 @@ pub use crate::{
 };
 
 #[cfg(feature = "futures")]
-pub use crate::assertions::futures::when_ready;
+pub use crate::assertions::futures::{when_ready, when_ready_after, when_ready_before};
 
 #[cfg(feature = "regex")]
 pub use crate::assertions::strings::to_match_regex;

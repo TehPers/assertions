@@ -1,10 +1,6 @@
-use std::marker::PhantomData;
-
-use crate::{
-    assertions::{
-        key, results::Resultish, Assertion, AssertionContext, AssertionModifier, SubjectKey,
-    },
-    AssertionResult,
+use crate::assertions::{
+    general::IntoInitializableOutput, key, results::Resultish, Assertion, AssertionContext,
+    AssertionModifier, SubjectKey,
 };
 
 /// Asserts that the target holds a success, then continues the assertion with
@@ -24,27 +20,20 @@ use crate::{
 /// expect!(subject, to_be_ok_and, to_equal(1));
 /// ```
 #[inline]
-pub fn to_be_ok_and<R, M>(prev: M, _: SubjectKey<R>) -> (OkAndModifier<R, M>, SubjectKey<R::OutT>)
+pub fn to_be_ok_and<R, M>(prev: M, _: SubjectKey<R>) -> (OkAndModifier<M>, SubjectKey<R::OutT>)
 where
     R: Resultish,
 {
-    (
-        OkAndModifier {
-            prev,
-            marker: PhantomData,
-        },
-        key(),
-    )
+    (OkAndModifier { prev }, key())
 }
 
 /// Modifier for [`to_be_ok_and()`].
 #[derive(Clone, Debug)]
-pub struct OkAndModifier<R, M> {
+pub struct OkAndModifier<M> {
     prev: M,
-    marker: PhantomData<fn(R)>,
 }
 
-impl<R, M, A> AssertionModifier<A> for OkAndModifier<R, M>
+impl<M, A> AssertionModifier<A> for OkAndModifier<M>
 where
     M: AssertionModifier<OkAndAssertion<A>>,
 {
@@ -64,17 +53,17 @@ pub struct OkAndAssertion<A> {
 
 impl<A, R> Assertion<R> for OkAndAssertion<A>
 where
-    A: Assertion<R::OutT, Output = AssertionResult>,
+    A: Assertion<R::OutT, Output: IntoInitializableOutput>,
     R: Resultish,
 {
-    type Output = AssertionResult;
+    type Output = <A::Output as IntoInitializableOutput>::Initialized;
 
     #[inline]
     fn execute(self, cx: AssertionContext, subject: R) -> Self::Output {
         let Some(subject) = subject.ok() else {
             return cx.fail("received Err");
         };
-        self.next.execute(cx, subject)
+        self.next.execute(cx, subject).into_initialized()
     }
 }
 
@@ -93,5 +82,18 @@ mod tests {
         expect!(&result, not, to_be_ok_and, to_satisfy(|_| true));
         expect!(&mut result, not, to_be_ok_and, to_satisfy(|_| true));
         expect!(result, not, to_be_ok_and, to_satisfy(|_| true));
+    }
+}
+
+#[cfg(all(test, feature = "futures"))]
+mod async_tests {
+    use std::future::ready;
+
+    use crate::prelude::*;
+
+    #[tokio::test]
+    async fn nested_async_works() {
+        let result: Result<_, ()> = Ok(ready(1));
+        expect!(result, to_be_ok_and, when_ready, to_equal(1)).await;
     }
 }

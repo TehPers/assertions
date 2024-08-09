@@ -17,7 +17,7 @@
 ///
 /// ## Syntax
 ///
-/// This macro is called similar to how a function is called. For example:
+/// This macro is called like a function. For example:
 ///
 /// ```
 /// # use expecters::prelude::*;
@@ -88,10 +88,9 @@
 ///
 /// > *Note: requires crate feature `futures`.*
 ///
-/// Async assertions function similar to sync assertions.
-///
-/// TODO - maybe doc this in the `futures` module so it's cfg-locked and can use
-/// doc tests
+/// Async assertions function similar to sync assertions, but need to be
+/// `.await`ed. For more information, see the
+/// [`futures`](crate::assertions::futures) module.
 ///
 /// ## Annotations
 ///
@@ -172,8 +171,14 @@ macro_rules! expect {
 ///
 /// More specifically, this does not finalize the output of the assertion. The
 /// syntax is exactly the same as [`expect!`] (and async assertions should still
-/// be `.await`ed as usual), but the output from it will be an
-/// [`AssertionResult`](crate::AssertionResult) instead.
+/// be `.await`ed as usual), but the output from it will be a result type that
+/// can be inspected rather than panicking on failure.
+///
+/// ```
+/// # use expecters::prelude::*;
+/// let result = try_expect!(1, to_equal(2));
+/// expect!(result.into_result(), to_be_err);
+/// ```
 ///
 /// See [`expect!`] for more information on how to use this macro.
 #[macro_export]
@@ -315,7 +320,7 @@ mod tests {
     struct NotDebug<T>(T);
 
     #[tokio::test]
-    // #[ignore]
+    #[ignore]
     async fn test_debugging() {
         debugging().await;
     }
@@ -324,6 +329,7 @@ mod tests {
         // expect!(ready(1), when_ready, to_equal(2)).await;
         // expect!([1, 2, 3], count, not, to_equal(3));
         // expect!([1, 2, 3], any, to_equal(4));
+        expect!([1, 2, 3], all, to_satisfy(|n| n % 2 == 1));
 
         expect!("blah", to_match_regex(r"\d+"));
 
@@ -339,7 +345,7 @@ mod tests {
             any,
             not,
             map(|NotDebug(x)| x),
-            to_be_less_than(4)
+            to_be_less_than(4),
         )
         .await;
 

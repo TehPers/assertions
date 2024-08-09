@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use crate::{
     assertions::{key, Assertion, AssertionContext, AssertionModifier, SubjectKey},
     metadata::Annotated,
@@ -31,33 +29,23 @@ use crate::{
 #[inline]
 pub fn map<M, T, U, F>(
     f: Annotated<F>,
-) -> impl FnOnce(M, SubjectKey<T>) -> (MapModifier<M, T, U, F>, SubjectKey<U>)
+) -> impl FnOnce(M, SubjectKey<T>) -> (MapModifier<M, F>, SubjectKey<U>)
 where
     F: FnOnce(T) -> U,
 {
-    move |prev, _| {
-        (
-            MapModifier {
-                prev,
-                map: f,
-                marker: PhantomData,
-            },
-            key(),
-        )
-    }
+    move |prev, _| (MapModifier { prev, map: f }, key())
 }
 
 /// Modifier for [`map()`].
 #[derive(Clone, Debug)]
-pub struct MapModifier<M, T, U, F> {
+pub struct MapModifier<M, F> {
     prev: M,
     map: Annotated<F>,
-    marker: PhantomData<fn(T) -> U>,
 }
 
-impl<M, T, U, F, A> AssertionModifier<A> for MapModifier<M, T, U, F>
+impl<M, F, A> AssertionModifier<A> for MapModifier<M, F>
 where
-    M: AssertionModifier<MapAssertion<A, T, U, F>>,
+    M: AssertionModifier<MapAssertion<A, F>>,
 {
     type Output = M::Output;
 
@@ -66,20 +54,18 @@ where
         self.prev.apply(MapAssertion {
             next,
             map: self.map,
-            marker: PhantomData,
         })
     }
 }
 
 /// Assertion for [`map()`].
 #[derive(Clone, Debug)]
-pub struct MapAssertion<A, T, U, F> {
+pub struct MapAssertion<A, F> {
     next: A,
     map: Annotated<F>,
-    marker: PhantomData<fn(T) -> U>,
 }
 
-impl<A, T, U, F> Assertion<T> for MapAssertion<A, T, U, F>
+impl<A, T, U, F> Assertion<T> for MapAssertion<A, F>
 where
     A: Assertion<U>,
     F: FnOnce(T) -> U,

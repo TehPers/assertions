@@ -1,4 +1,4 @@
-use std::{fmt::Debug, marker::PhantomData};
+use std::fmt::Debug;
 
 use crate::assertions::{key, Assertion, AssertionContext, AssertionModifier, SubjectKey};
 
@@ -9,27 +9,20 @@ use crate::assertions::{key, Assertion, AssertionContext, AssertionModifier, Sub
 /// expect!("hello", as_debug, to_equal(r#""hello""#));
 /// ```
 #[inline]
-pub fn as_debug<T, M>(prev: M, _: SubjectKey<T>) -> (AsDebugModifier<T, M>, SubjectKey<String>)
+pub fn as_debug<T, M>(prev: M, _: SubjectKey<T>) -> (AsDebugModifier<M>, SubjectKey<String>)
 where
     T: Debug,
 {
-    (
-        AsDebugModifier {
-            prev,
-            marker: PhantomData,
-        },
-        key(),
-    )
+    (AsDebugModifier { prev }, key())
 }
 
 /// Modifier for [`as_debug()`].
 #[derive(Clone, Debug)]
-pub struct AsDebugModifier<T, M> {
+pub struct AsDebugModifier<M> {
     prev: M,
-    marker: PhantomData<fn(T)>,
 }
 
-impl<T, M, A> AssertionModifier<A> for AsDebugModifier<T, M>
+impl<M, A> AssertionModifier<A> for AsDebugModifier<M>
 where
     M: AssertionModifier<AsDebugAssertion<A>>,
 {

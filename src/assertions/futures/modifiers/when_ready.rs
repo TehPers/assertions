@@ -1,4 +1,4 @@
-use std::{future::Future, marker::PhantomData};
+use std::future::Future;
 
 use crate::assertions::{
     futures::WhenReadyFuture, key, Assertion, AssertionContext, AssertionModifier, SubjectKey,
@@ -13,9 +13,10 @@ use crate::assertions::{
 /// ```
 /// # use expecters::prelude::*;
 /// use core::future::ready;
-/// # futures::executor::block_on(async {
+/// # #[tokio::main(flavor = "current_thread")]
+/// # async fn main() {
 /// expect!(ready(1), when_ready, to_equal(1)).await;
-/// # })
+/// # }
 /// ```
 ///
 /// Note that this can be chained multiple times if needed, but each level of
@@ -24,7 +25,8 @@ use crate::assertions::{
 /// ```
 /// # use expecters::prelude::*;
 /// use core::future::ready;
-/// # futures::executor::block_on(async {
+/// # #[tokio::main(flavor = "current_thread")]
+/// # async fn main() {
 /// expect!(
 ///     ready(ready(1)),
 ///     when_ready, // outer future
@@ -33,33 +35,23 @@ use crate::assertions::{
 /// )
 /// .await
 /// .await;
-/// # })
+/// # }
 /// ```
 #[inline]
-pub fn when_ready<T, M>(
-    prev: M,
-    _: SubjectKey<T>,
-) -> (WhenReadyModifier<T, M>, SubjectKey<T::Output>)
+pub fn when_ready<T, M>(prev: M, _: SubjectKey<T>) -> (WhenReadyModifier<M>, SubjectKey<T::Output>)
 where
     T: Future,
 {
-    (
-        WhenReadyModifier {
-            prev,
-            marker: PhantomData,
-        },
-        key(),
-    )
+    (WhenReadyModifier { prev }, key())
 }
 
-/// Modifier for [`when_ready()`].
+/// Modifier for [`when_ready`].
 #[derive(Clone, Debug)]
-pub struct WhenReadyModifier<T, M> {
+pub struct WhenReadyModifier<M> {
     prev: M,
-    marker: PhantomData<fn(T)>,
 }
 
-impl<T, M, A> AssertionModifier<A> for WhenReadyModifier<T, M>
+impl<M, A> AssertionModifier<A> for WhenReadyModifier<M>
 where
     M: AssertionModifier<WhenReadyAssertion<A>>,
 {
@@ -70,7 +62,7 @@ where
     }
 }
 
-/// Assertion for [`when_ready()`].
+/// Assertion for [`when_ready`].
 #[derive(Clone, Debug)]
 pub struct WhenReadyAssertion<A> {
     next: A,

@@ -1,7 +1,4 @@
-use std::{
-    fmt::{Debug, Display},
-    marker::PhantomData,
-};
+use std::fmt::Display;
 
 use crate::assertions::{key, Assertion, AssertionContext, AssertionModifier, SubjectKey};
 
@@ -12,27 +9,20 @@ use crate::assertions::{key, Assertion, AssertionContext, AssertionModifier, Sub
 /// expect!(1, as_display, to_equal("1"));
 /// ```
 #[inline]
-pub fn as_display<T, M>(prev: M, _: SubjectKey<T>) -> (AsDisplayModifier<T, M>, SubjectKey<String>)
+pub fn as_display<T, M>(prev: M, _: SubjectKey<T>) -> (AsDisplayModifier<M>, SubjectKey<String>)
 where
     T: Display,
 {
-    (
-        AsDisplayModifier {
-            prev,
-            marker: PhantomData,
-        },
-        key(),
-    )
+    (AsDisplayModifier { prev }, key())
 }
 
 /// Modifier for [`as_display()`].
 #[derive(Clone, Debug)]
-pub struct AsDisplayModifier<T, M> {
+pub struct AsDisplayModifier<M> {
     prev: M,
-    marker: PhantomData<fn(T)>,
 }
 
-impl<T, M, A> AssertionModifier<A> for AsDisplayModifier<T, M>
+impl<M, A> AssertionModifier<A> for AsDisplayModifier<M>
 where
     M: AssertionModifier<AsDisplayAssertion<A>>,
 {

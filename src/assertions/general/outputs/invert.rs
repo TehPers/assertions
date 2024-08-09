@@ -1,5 +1,3 @@
-use std::future::Future;
-
 use crate::{assertions::AssertionContext, AssertionResult};
 
 /// An assertion result that can be inverted.
@@ -35,20 +33,3 @@ impl InvertibleOutput for AssertionResult {
         self
     }
 }
-
-#[cfg(feature = "futures")]
-const _: () = {
-    use crate::assertions::futures::InvertedOutputFuture;
-
-    impl<F> InvertibleOutput for F
-    where
-        F: Future<Output: InvertibleOutput>,
-    {
-        type Inverted = InvertedOutputFuture<F>;
-
-        #[inline]
-        fn invert(self, cx: AssertionContext) -> Self::Inverted {
-            InvertedOutputFuture::new(cx, self)
-        }
-    }
-};

@@ -45,7 +45,7 @@ impl AssertionResult {
     /// Sets the state of this output to a pass. This overrides the context of
     /// the result.
     #[inline]
-    pub fn set_pass(&mut self, mut new_cx: AssertionContext) {
+    pub(crate) fn set_pass(&mut self, mut new_cx: AssertionContext) {
         self.error = None;
 
         // Swap the context, but recover missing frames from the new context
@@ -56,7 +56,7 @@ impl AssertionResult {
     /// Sets the state of this output to a failure with the given message.
     #[inline]
     #[allow(clippy::needless_pass_by_value)]
-    pub fn set_fail(&mut self, mut new_cx: AssertionContext, message: impl ToString) {
+    pub(crate) fn set_fail(&mut self, mut new_cx: AssertionContext, message: impl ToString) {
         self.error = Some(message.to_string());
 
         // Swap the context, but recover missing frames from the new context
@@ -65,9 +65,8 @@ impl AssertionResult {
     }
 
     /// Converts this output into a [`Result`].
-    // TODO: this should be called when finalizing?
     #[inline]
-    pub(crate) fn into_result(self) -> Result<(), AssertionError> {
+    pub fn into_result(self) -> Result<(), AssertionError> {
         match self.error {
             Some(message) => Err(AssertionError::new(self.cx, message)),
             None => Ok(()),
@@ -135,11 +134,7 @@ impl Debug for AssertionError {
         let mut idx = 0;
         for frame in self.cx.visited.iter() {
             let comment = if idx == self.cx.visited.len() - 1 {
-                format!(
-                    " {}",
-                    self.message
-                        .if_supports_color(Stream::Stderr, |text| text.bright_red().to_string())
-                )
+                format!(" {}", colored(&self.message, |text| text.bright_red()))
             } else {
                 String::new()
             };
@@ -155,7 +150,11 @@ impl Debug for AssertionError {
 
         // Write non-visited frames
         for frame in &self.cx.remaining[self.cx.recovered.len()..] {
-            writeln!(f, "  {frame}: (not visited)")?;
+            writeln!(
+                f,
+                "  {frame}: {}",
+                colored(&"(not visited)", |text| text.dimmed())
+            )?;
             idx += 1;
         }
 

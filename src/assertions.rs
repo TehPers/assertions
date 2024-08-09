@@ -1,7 +1,5 @@
-//! Assertions and modifiers that are used with [`expect!`], as well as any
-//! types used to drive them.
-//!
-//! [`expect!`]: crate::expect!
+//! Assertions and modifiers that are used with [`expect!`](crate::expect!), as
+//! well as any types used to drive them.
 
 // pub mod functions;
 #[cfg(feature = "futures")]

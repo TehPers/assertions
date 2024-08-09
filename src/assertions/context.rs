@@ -1,6 +1,6 @@
 use crate::metadata::{Annotated, AnnotatedKind, SourceLoc};
 
-use super::AssertionResult;
+use super::general::InitializableOutput;
 
 /// Context that is passed through an assertion to track the full execution flow
 /// that occurred.
@@ -102,8 +102,11 @@ impl AssertionContext {
 
     /// Creates a new success value.
     #[inline]
-    pub fn pass(self) -> AssertionResult {
-        AssertionResult::new(self, None)
+    pub fn pass<O>(self) -> O
+    where
+        O: InitializableOutput,
+    {
+        O::pass(self)
     }
 
     /// Creates a new success value based on a condition. Otherwise, create a
@@ -112,7 +115,10 @@ impl AssertionContext {
     /// This is a convenience function for turning a boolean into either a pass
     /// or a fail.
     #[inline]
-    pub fn pass_if(self, pass: bool, failure_message: impl ToString) -> AssertionResult {
+    pub fn pass_if<O>(self, pass: bool, failure_message: impl ToString) -> O
+    where
+        O: InitializableOutput,
+    {
         if pass {
             self.pass()
         } else {
@@ -129,8 +135,11 @@ impl AssertionContext {
     /// parent list) is also recorded onto the error to aid with debugging.
     #[inline]
     #[allow(clippy::needless_pass_by_value)]
-    pub fn fail(self, message: impl ToString) -> AssertionResult {
-        AssertionResult::new(self, Some(message.to_string()))
+    pub fn fail<O>(self, message: impl ToString) -> O
+    where
+        O: InitializableOutput,
+    {
+        O::fail(self, message.to_string())
     }
 
     /// Recovers missing frames from another context.

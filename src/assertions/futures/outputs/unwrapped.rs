@@ -41,3 +41,14 @@ where
         Poll::Ready(output.unwrap())
     }
 }
+
+impl<F> UnwrappableOutput for F
+where
+    F: Future<Output: UnwrappableOutput>,
+{
+    type Unwrapped = UnwrappedOutputFuture<F>;
+
+    fn unwrap(self) -> Self::Unwrapped {
+        UnwrappedOutputFuture::new(self)
+    }
+}

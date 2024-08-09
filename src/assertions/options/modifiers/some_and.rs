@@ -1,10 +1,6 @@
-use std::marker::PhantomData;
-
-use crate::{
-    assertions::{
-        key, options::Optionish, Assertion, AssertionContext, AssertionModifier, SubjectKey,
-    },
-    AssertionResult,
+use crate::assertions::{
+    general::IntoInitializableOutput, key, options::Optionish, Assertion, AssertionContext,
+    AssertionModifier, SubjectKey,
 };
 
 /// Asserts that the subject holds a value, then continues the assertion with
@@ -22,30 +18,20 @@ use crate::{
 /// expect!(None::<i32>, to_be_some_and, to_equal(2));
 /// ```
 #[inline]
-pub fn to_be_some_and<O, M>(
-    prev: M,
-    _: SubjectKey<O>,
-) -> (SomeAndModifier<O, M>, SubjectKey<O::OutT>)
+pub fn to_be_some_and<O, M>(prev: M, _: SubjectKey<O>) -> (SomeAndModifier<M>, SubjectKey<O::OutT>)
 where
     O: Optionish,
 {
-    (
-        SomeAndModifier {
-            prev,
-            marker: PhantomData,
-        },
-        key(),
-    )
+    (SomeAndModifier { prev }, key())
 }
 
 /// Modifier for [`to_be_some_and()`].
 #[derive(Clone, Debug)]
-pub struct SomeAndModifier<O, M> {
+pub struct SomeAndModifier<M> {
     prev: M,
-    marker: PhantomData<fn(O)>,
 }
 
-impl<O, M, A> AssertionModifier<A> for SomeAndModifier<O, M>
+impl<M, A> AssertionModifier<A> for SomeAndModifier<M>
 where
     M: AssertionModifier<SomeAndAssertion<A>>,
 {
@@ -65,17 +51,17 @@ pub struct SomeAndAssertion<A> {
 
 impl<A, O> Assertion<O> for SomeAndAssertion<A>
 where
-    A: Assertion<O::OutT, Output = AssertionResult>,
+    A: Assertion<O::OutT, Output: IntoInitializableOutput>,
     O: Optionish,
 {
-    type Output = AssertionResult;
+    type Output = <A::Output as IntoInitializableOutput>::Initialized;
 
     #[inline]
     fn execute(self, cx: AssertionContext, subject: O) -> Self::Output {
         let Some(subject) = subject.some() else {
             return cx.fail("received None");
         };
-        self.next.execute(cx, subject)
+        self.next.execute(cx, subject).into_initialized()
     }
 }
 
@@ -94,5 +80,14 @@ mod tests {
         expect!(&option, not, to_be_some_and, to_satisfy(|_| true));
         expect!(&mut option, not, to_be_some_and, to_satisfy(|_| true));
         expect!(option, not, to_be_some_and, to_satisfy(|_| true));
+    }
+
+    #[cfg(feature = "futures")]
+    #[tokio::test]
+    async fn nested_async_works() {
+        use std::future::ready;
+
+        let result = Some(ready(1));
+        expect!(result, to_be_some_and, when_ready, to_equal(1)).await;
     }
 }

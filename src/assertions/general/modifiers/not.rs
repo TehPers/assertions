@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use crate::assertions::{
     general::InvertibleOutput, key, Assertion, AssertionContext, AssertionModifier, SubjectKey,
 };
@@ -21,24 +19,17 @@ use crate::assertions::{
 /// expect!(1, not, to_equal(1));
 /// ```
 #[inline]
-pub fn not<T, M>(prev: M, _: SubjectKey<T>) -> (NotModifier<T, M>, SubjectKey<T>) {
-    (
-        NotModifier {
-            prev,
-            marker: PhantomData,
-        },
-        key(),
-    )
+pub fn not<T, M>(prev: M, _: SubjectKey<T>) -> (NotModifier<M>, SubjectKey<T>) {
+    (NotModifier { prev }, key())
 }
 
 /// Modifier for [`not()`].
 #[derive(Clone, Debug)]
-pub struct NotModifier<T, M> {
+pub struct NotModifier<M> {
     prev: M,
-    marker: PhantomData<fn(T)>,
 }
 
-impl<T, M, A> AssertionModifier<A> for NotModifier<T, M>
+impl<M, A> AssertionModifier<A> for NotModifier<M>
 where
     M: AssertionModifier<NotAssertion<A>>,
 {

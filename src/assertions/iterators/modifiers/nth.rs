@@ -1,9 +1,9 @@
-use std::marker::PhantomData;
-
 use crate::{
-    assertions::{key, Assertion, AssertionContext, AssertionModifier, SubjectKey},
+    assertions::{
+        general::IntoInitializableOutput, key, Assertion, AssertionContext, AssertionModifier,
+        SubjectKey,
+    },
     metadata::Annotated,
-    AssertionResult,
 };
 
 /// Applies an assertion to a specific element in the target. If the element
@@ -31,31 +31,21 @@ use crate::{
 #[inline]
 pub fn nth<T, M>(
     index: Annotated<usize>,
-) -> impl FnOnce(M, SubjectKey<T>) -> (NthModifier<T, M>, SubjectKey<T::Item>)
+) -> impl FnOnce(M, SubjectKey<T>) -> (NthModifier<M>, SubjectKey<T::Item>)
 where
     T: IntoIterator,
 {
-    move |prev, _| {
-        (
-            NthModifier {
-                prev,
-                index,
-                marker: PhantomData,
-            },
-            key(),
-        )
-    }
+    move |prev, _| (NthModifier { prev, index }, key())
 }
 
 /// Modifier for [`nth()`].
 #[derive(Clone, Debug)]
-pub struct NthModifier<T, M> {
+pub struct NthModifier<M> {
     prev: M,
     index: Annotated<usize>,
-    marker: PhantomData<fn(T)>,
 }
 
-impl<T, M, A> AssertionModifier<A> for NthModifier<T, M>
+impl<M, A> AssertionModifier<A> for NthModifier<M>
 where
     M: AssertionModifier<NthAssertion<A>>,
 {
@@ -79,10 +69,10 @@ pub struct NthAssertion<A> {
 
 impl<A, T> Assertion<T> for NthAssertion<A>
 where
-    A: Assertion<T::Item, Output = AssertionResult>,
+    A: Assertion<T::Item, Output: IntoInitializableOutput>,
     T: IntoIterator,
 {
-    type Output = AssertionResult;
+    type Output = <A::Output as IntoInitializableOutput>::Initialized;
 
     #[inline]
     fn execute(self, mut cx: AssertionContext, subject: T) -> Self::Output {
@@ -92,6 +82,18 @@ where
         let Some(subject) = subject.into_iter().nth(index) else {
             return cx.fail("index out of bounds");
         };
-        self.next.execute(cx, subject)
+        self.next.execute(cx, subject).into_initialized()
+    }
+}
+
+#[cfg(all(test, feature = "futures"))]
+mod async_tests {
+    use std::future::ready;
+
+    use crate::prelude::*;
+
+    #[tokio::test]
+    async fn nested_async_works() {
+        expect!([ready(1)], nth(0), when_ready, to_equal(1)).await;
     }
 }

@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use crate::assertions::{
     iterators::{MergeStrategy, MergeableOutput},
     key, Assertion, AssertionContext, AssertionModifier, SubjectKey,
@@ -20,8 +18,17 @@ use crate::assertions::{
 /// # use expecters::prelude::*;
 /// expect!([1, 3, 5], all, to_equal(5));
 /// ```
+///
+/// Requires that the rest of the assertion is [`Clone`]. For example, comparing
+/// each item to a non-cloneable value will not compile:
+///
+/// ```compile_fail
+/// # use expecters::prelude::*;
+/// struct NotClone(i32);
+/// expect!([NotClone(0)], all, map(|NotClone(x)| x), to_equal(0));
+/// ```
 #[inline]
-pub fn all<T, M>(prev: M, _: SubjectKey<T>) -> (MergeModifier<T, M>, SubjectKey<T::Item>)
+pub fn all<T, M>(prev: M, _: SubjectKey<T>) -> (MergeModifier<M>, SubjectKey<T::Item>)
 where
     T: IntoIterator,
 {
@@ -29,7 +36,6 @@ where
         MergeModifier {
             prev,
             strategy: MergeStrategy::All,
-            marker: PhantomData,
         },
         key(),
     )
@@ -51,7 +57,7 @@ where
 /// expect!([1, 3, 5], any, to_equal(4));
 /// ```
 #[inline]
-pub fn any<T, M>(prev: M, _: SubjectKey<T>) -> (MergeModifier<T, M>, SubjectKey<T::Item>)
+pub fn any<T, M>(prev: M, _: SubjectKey<T>) -> (MergeModifier<M>, SubjectKey<T::Item>)
 where
     T: IntoIterator,
 {
@@ -59,7 +65,6 @@ where
         MergeModifier {
             prev,
             strategy: MergeStrategy::Any,
-            marker: PhantomData,
         },
         key(),
     )
@@ -67,13 +72,12 @@ where
 
 /// Modifier for [`all()`] and [`any()`].
 #[derive(Clone, Debug)]
-pub struct MergeModifier<T, M> {
+pub struct MergeModifier<M> {
     prev: M,
     strategy: MergeStrategy,
-    marker: PhantomData<fn(T)>,
 }
 
-impl<T, M, A> AssertionModifier<A> for MergeModifier<T, M>
+impl<M, A> AssertionModifier<A> for MergeModifier<M>
 where
     M: AssertionModifier<MergeAssertion<A>>,
 {
