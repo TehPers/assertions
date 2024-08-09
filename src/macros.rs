@@ -266,14 +266,9 @@ macro_rules! __expect_inner {
         $key:expr,
         $assertion:ident
         $(,)?
-    ) => {{
-        let (chain, _key) = $crate::__expect_inner!(@annotate, $chain, $key);
-        let assertion = $assertion();
-        $crate::assertions::AssertionModifier::apply(
-            chain,
-            assertion,
-        )
-    }};
+    ) => {
+        $crate::__expect_inner!(@build_assertion, $chain, $key, $assertion())
+    };
     (
         // Recursive case (with params)
         @build_assertion,
@@ -282,10 +277,16 @@ macro_rules! __expect_inner {
         $modifier:ident($($param:expr),* $(,)?),
         $($rest:tt)*
     ) => {{
-        let (chain, _key) = $crate::__expect_inner!(@annotate, $chain, $key);
-        let modifier = $modifier($($crate::annotated!($param),)*);
-        let (chain, _key) = modifier(chain, _key);
-        $crate::__expect_inner!(@build_assertion, chain, _key, $($rest)*)
+        let modifier = $modifier(
+            $($crate::annotated!($param),)*
+        );
+        $crate::__expect_inner!(
+            @build_assertion,
+            $chain,
+            $key,
+            modifier,
+            $($rest)*
+        )
     }};
     (
         // Recursive case (without params)
