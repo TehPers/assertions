@@ -21,6 +21,11 @@ pub trait UnwrappableOutput {
     ///
     /// This is what the assertion returns when calling
     /// [`expect!`](crate::expect!).
+    ///
+    /// Implementers of this function should also attach `#[track_caller]` to
+    /// the function that performs the unwrapping. For synchronous outputs, this
+    /// function is usually the one that unwraps the value, but async outputs
+    /// may choose to unwrap the value in a `poll` function, for example.
     fn unwrap(self) -> Self::Unwrapped;
 }
 
@@ -28,6 +33,7 @@ impl UnwrappableOutput for AssertionResult {
     type Unwrapped = ();
 
     #[inline]
+    #[track_caller]
     fn unwrap(self) -> Self::Unwrapped {
         if let Err(e) = self.into_result() {
             panic!("{e:?}")

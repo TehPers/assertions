@@ -35,6 +35,7 @@ where
     type Output = <F::Output as UnwrappableOutput>::Unwrapped;
 
     #[inline]
+    #[track_caller]
     fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
         let projected = self.project();
         let output = ready!(projected.inner.poll(cx));
@@ -48,6 +49,7 @@ where
 {
     type Unwrapped = UnwrappedOutputFuture<F>;
 
+    #[inline]
     fn unwrap(self) -> Self::Unwrapped {
         UnwrappedOutputFuture::new(self)
     }
