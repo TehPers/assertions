@@ -36,22 +36,22 @@ use crate::{
 /// # }
 /// ```
 pub fn when_ready_before<Fut, M, T>(
+    prev: M,
+    _: SubjectKey<T>,
     fut: Annotated<Fut>,
-) -> impl FnOnce(M, SubjectKey<T>) -> (CompletionOrderModifier<Fut, M>, SubjectKey<T::Output>)
+) -> (CompletionOrderModifier<Fut, M>, SubjectKey<T::Output>)
 where
     Fut: Future,
     T: Future,
 {
-    move |prev, _| {
-        (
-            CompletionOrderModifier {
-                prev,
-                fut,
-                order: CompletionOrder::Before,
-            },
-            key(),
-        )
-    }
+    (
+        CompletionOrderModifier {
+            prev,
+            fut,
+            order: CompletionOrder::Before,
+        },
+        key(),
+    )
 }
 
 /// Executes an assertion on the output of a future, but only if it does not
@@ -87,22 +87,22 @@ where
 /// # }
 /// ```
 pub fn when_ready_after<Fut, M, T>(
+    prev: M,
+    _: SubjectKey<T>,
     fut: Annotated<Fut>,
-) -> impl FnOnce(M, SubjectKey<T>) -> (CompletionOrderModifier<Fut, M>, SubjectKey<T::Output>)
+) -> (CompletionOrderModifier<Fut, M>, SubjectKey<T::Output>)
 where
     Fut: Future,
     T: Future,
 {
-    move |prev, _| {
-        (
-            CompletionOrderModifier {
-                prev,
-                fut,
-                order: CompletionOrder::After,
-            },
-            key(),
-        )
-    }
+    (
+        CompletionOrderModifier {
+            prev,
+            fut,
+            order: CompletionOrder::After,
+        },
+        key(),
+    )
 }
 
 /// Modifier for [`when_ready_before()`] and [`when_ready_after()`].

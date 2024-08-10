@@ -26,17 +26,48 @@ use crate::{
 /// # use expecters::prelude::*;
 /// expect!("abcd", map(str::chars), any, to_equal('e'));
 /// ```
+///
+/// ## Type inference
+///
+/// The Rust compiler can sometimes have trouble inferring the type of the value
+/// being mapped. This is due to how the [`expect!`] macro is implemented. The
+/// macro wraps the mapping function passed to this modifier to annotate it, but
+/// in the process needs to know what the exact type of the closure is and can
+/// sometimes struggle to infer it.
+///
+/// If type inference is an issue, provide the specific type in the closure. For
+/// example, this fails to compile:
+///
+/// ```compile_fail
+/// # use expecters::prelude::*;
+/// struct MyStruct<T>(T);
+/// expect!(MyStruct(1), map(|n| n.0), to_equal(1));
+/// ```
+///
+/// Providing a specific type (through a pattern or by specifying the exact
+/// type) solves this:
+///
+/// ```
+/// # use expecters::prelude::*;
+/// struct MyStruct<T>(T);
+/// expect!(MyStruct(1), map(|n: MyStruct<i32>| n.0), to_equal(1));
+/// expect!(MyStruct(1), map(|MyStruct(n)| n), to_equal(1));
+/// ```
+///
+/// [`expect!`]: crate::expect!
 #[inline]
 pub fn map<M, T, U, F>(
+    prev: M,
+    _: SubjectKey<T>,
     f: Annotated<F>,
-) -> impl FnOnce(M, SubjectKey<T>) -> (MapModifier<M, F>, SubjectKey<U>)
+) -> (MapModifier<M, F>, SubjectKey<U>)
 where
     F: FnOnce(T) -> U,
 {
-    move |prev, _| (MapModifier { prev, map: f }, key())
+    (MapModifier { prev, map: f }, key())
 }
 
-/// Modifier for [`map()`].
+/// Modifier for [`map`].
 #[derive(Clone, Debug)]
 pub struct MapModifier<M, F> {
     prev: M,
@@ -58,7 +89,7 @@ where
     }
 }
 
-/// Assertion for [`map()`].
+/// Assertion for [`map`].
 #[derive(Clone, Debug)]
 pub struct MapAssertion<A, F> {
     next: A,

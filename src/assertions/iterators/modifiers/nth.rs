@@ -30,12 +30,14 @@ use crate::{
 /// ```
 #[inline]
 pub fn nth<T, M>(
+    prev: M,
+    _: SubjectKey<T>,
     index: Annotated<usize>,
-) -> impl FnOnce(M, SubjectKey<T>) -> (NthModifier<M>, SubjectKey<T::Item>)
+) -> (NthModifier<M>, SubjectKey<T::Item>)
 where
     T: IntoIterator,
 {
-    move |prev, _| (NthModifier { prev, index }, key())
+    (NthModifier { prev, index }, key())
 }
 
 /// Modifier for [`nth()`].

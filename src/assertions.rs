@@ -5,6 +5,11 @@
 //! chaining together modifiers and a final assertion. Modifiers can perform
 //! additional checks or transform inputs/outputs to later modifiers/assertions.
 //!
+//! ```
+//! # use expecters::prelude::*;
+//! expect!([1, 2, 3], all, to_be_greater_than(0));
+//! ```
+//!
 //! ## Creating an assertion
 //!
 //! The signature for assertions is simple. An assertion function, like
@@ -32,6 +37,7 @@
 //!     ToBeZeroAssertion(annotation)
 //! }
 //!
+//! #[derive(Clone, Debug)]
 //! pub struct ToBeZeroAssertion(Annotated<String>);
 //!
 //! impl Assertion<i32> for ToBeZeroAssertion {
@@ -93,6 +99,11 @@
 //!   another assertion, which happens on the second pass when we're passing the
 //!   assertion at the end of the chain back down to the root.
 //!
+//! To use the modifier with the [`expect!`] macro, you should also define a
+//! function for the modifier. The function should take at minimum two required
+//! inputs (but it may specify additional inputs), and should return a pair
+//! containing the constructed modifier and a subject key.
+//!
 //! ```
 //! use expecters::{
 //!     assertions::{
@@ -101,10 +112,13 @@
 //!         AssertionModifier,
 //!         SubjectKey,
 //!         key,
-//!     }
+//!     },
+//!     metadata::Annotated,
 //!     prelude::*,
 //! };
 //!
+//! // The first two parameters are required, but you may specify any number of
+//! // additional parameters to your modifier:
 //! pub fn divided_by<M>(
 //!     prev: M, // the modifier we're wrapping
 //!     _: SubjectKey<f32>, // the type we're expecting to receive in this step
@@ -116,8 +130,11 @@
 //!     (DividedByModifier(prev, divisor), key())
 //! }
 //!
+//! // This wraps the modifier chain (first pass, going from root -> assertion)
+//! #[derive(Clone, Debug)]
 //! pub struct DividedByModifier<M>(M, Annotated<f32>);
-//! impl<M, A> AssertionModifier for DividedByModifier
+//!
+//! impl<M, A> AssertionModifier<A> for DividedByModifier<M>
 //! where
 //!     M: AssertionModifier<DividedByAssertion<A>>,
 //! {
@@ -128,7 +145,10 @@
 //!     }
 //! }
 //!
+//! // This wraps the assertion chain (second pass, assertion -> root)
+//! #[derive(Clone, Debug)]
 //! pub struct DividedByAssertion<A>(A, Annotated<f32>);
+//!
 //! impl<A> Assertion<f32> for DividedByAssertion<A>
 //! where
 //!     A: Assertion<f32>
@@ -143,6 +163,11 @@
 //!
 //! expect!(4.0, divided_by(2.0), to_be_less_than(2.1));
 //! ```
+//!
+//! Similar to assertions, modifiers that take no arguments can be used in the
+//! [`expect!`] macro without an argument list. [`not`] is an example of this,
+//! and common usage of it is without parentheses, though parentheses are still
+//! allowed.
 //!
 //! [`ToBeOptionVariantAssertion`]: options::ToBeOptionVariantAssertion
 //! [`expect!`]: crate::expect!

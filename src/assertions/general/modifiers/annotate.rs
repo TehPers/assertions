@@ -5,8 +5,8 @@ use crate::{
 
 #[doc(hidden)]
 pub fn __annotate<T, M>(
-    _: SubjectKey<T>,
     prev: M,
+    _: SubjectKey<T>,
     annotate: fn(T) -> Annotated<T>,
 ) -> (AnnotateModifier<T, M>, SubjectKey<T>) {
     (AnnotateModifier { prev, annotate }, key())
