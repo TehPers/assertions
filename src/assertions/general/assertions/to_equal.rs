@@ -1,7 +1,7 @@
 use crate::{
     assertions::{Assertion, AssertionContext},
     metadata::Annotated,
-    AssertionResult,
+    AssertionOutput,
 };
 
 /// Asserts that the subject is equal to the given value.
@@ -32,7 +32,7 @@ impl<T, U> Assertion<T> for ToEqualAssertion<U>
 where
     T: PartialEq<U>,
 {
-    type Output = AssertionResult;
+    type Output = AssertionOutput;
 
     #[inline]
     fn execute(self, mut cx: AssertionContext, value: T) -> Self::Output {

@@ -14,7 +14,7 @@ use super::AssertionContext;
 ///
 /// Unlike a traditional [`Result`], this type includes additional context about
 /// the execution path that led to a success or a failure. It can be converted
-/// into a normal [`Result`] with [`into_result`](AssertionResult::into_result).
+/// into a normal [`Result`] with [`into_result`](AssertionOutput::into_result).
 ///
 /// Note that not all assertions return this as their output (like asynchronous
 /// assertions), but it is the preferred foundational output type for
@@ -24,12 +24,12 @@ use super::AssertionContext;
 /// output).
 #[derive(Clone, Debug)]
 #[must_use]
-pub struct AssertionResult {
+pub struct AssertionOutput {
     cx: AssertionContext,
     error: Option<String>,
 }
 
-impl AssertionResult {
+impl AssertionOutput {
     #[inline]
     pub(crate) fn new(cx: AssertionContext, error: Option<String>) -> Self {
         Self { cx, error }

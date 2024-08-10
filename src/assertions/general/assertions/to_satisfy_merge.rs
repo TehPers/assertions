@@ -104,12 +104,12 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{prelude::*, AssertionResult};
+    use crate::{prelude::*, AssertionOutput};
 
     #[test]
     fn vacuous() {
-        expect!(1, to_satisfy_all(|_| -> [AssertionResult; 0] { [] }));
-        expect!(1, not, to_satisfy_any(|_| -> [AssertionResult; 0] { [] }));
+        expect!(1, to_satisfy_all(|_| -> [AssertionOutput; 0] { [] }));
+        expect!(1, not, to_satisfy_any(|_| -> [AssertionOutput; 0] { [] }));
     }
 }
 

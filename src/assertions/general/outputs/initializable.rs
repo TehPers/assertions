@@ -1,4 +1,4 @@
-use crate::{assertions::AssertionContext, AssertionResult};
+use crate::{assertions::AssertionContext, AssertionOutput};
 
 /// An assertion output that can be directly constructed from an
 /// [`AssertionContext`].
@@ -29,15 +29,15 @@ pub trait InitializableOutput {
     // fn into_initializable(self) -> Self::Initialized;
 }
 
-impl InitializableOutput for AssertionResult {
+impl InitializableOutput for AssertionOutput {
     #[inline]
     fn pass(cx: AssertionContext) -> Self {
-        AssertionResult::new(cx, None)
+        AssertionOutput::new(cx, None)
     }
 
     #[inline]
     fn fail(cx: AssertionContext, message: String) -> Self {
-        AssertionResult::new(cx, Some(message))
+        AssertionOutput::new(cx, Some(message))
     }
 }
 
@@ -60,7 +60,7 @@ pub trait IntoInitializableOutput {
     fn into_initialized(self) -> Self::Initialized;
 }
 
-impl IntoInitializableOutput for AssertionResult {
+impl IntoInitializableOutput for AssertionOutput {
     type Initialized = Self;
 
     #[inline]

@@ -8,7 +8,7 @@ use pin_project_lite::pin_project;
 
 use crate::{
     assertions::{Assertion, AssertionContext},
-    AssertionResult,
+    AssertionOutput,
 };
 
 pin_project! {
@@ -51,9 +51,9 @@ impl<Fut, T, A> Future for CompletionOrderFuture<Fut, T, A>
 where
     Fut: Future,
     T: Future,
-    A: Assertion<T::Output, Output = AssertionResult>,
+    A: Assertion<T::Output, Output = AssertionOutput>,
 {
-    type Output = AssertionResult;
+    type Output = AssertionOutput;
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
         let projected = self.project();

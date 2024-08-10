@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 use crate::{
     assertions::{Assertion, AssertionContext},
     metadata::Annotated,
-    AssertionResult,
+    AssertionOutput,
 };
 
 /// Asserts that the target is less than the given value.
@@ -113,7 +113,7 @@ impl<T, U> Assertion<T> for ToCmpAssertion<U>
 where
     T: PartialOrd<U>,
 {
-    type Output = AssertionResult;
+    type Output = AssertionOutput;
 
     fn execute(self, mut cx: AssertionContext, subject: T) -> Self::Output {
         cx.annotate("boundary", &self.boundary);

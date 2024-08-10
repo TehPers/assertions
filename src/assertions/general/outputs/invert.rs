@@ -1,25 +1,25 @@
-use crate::{assertions::AssertionContext, AssertionResult};
+use crate::{assertions::AssertionContext, AssertionOutput};
 
-/// An assertion result that can be inverted.
+/// An assertion output that can be inverted.
 ///
-/// An inverted result is swapped from a failure to a success, or from a success
+/// An inverted output is swapped from a failure to a success, or from a success
 /// to a failure.
 pub trait InvertibleOutput {
-    /// The inverted result.
+    /// The inverted output.
     type Inverted;
 
-    /// Inverts the result.
+    /// Inverts the output.
     ///
     /// A success is converted to a failure, and a failure is converted to a
     /// success.
     ///
-    /// If it is not yet known whether the result represents a success or
-    /// failure, then a value is returned that inverts that result when it is
+    /// If it is not yet known whether the output represents a success or
+    /// failure, then a value is returned that inverts that output when it is
     /// known.
     fn invert(self, cx: AssertionContext) -> Self::Inverted;
 }
 
-impl InvertibleOutput for AssertionResult {
+impl InvertibleOutput for AssertionOutput {
     type Inverted = Self;
 
     #[inline]

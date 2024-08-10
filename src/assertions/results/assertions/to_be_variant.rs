@@ -1,6 +1,6 @@
 use crate::{
     assertions::{results::Resultish, Assertion, AssertionContext},
-    AssertionResult,
+    AssertionOutput,
 };
 
 /// Asserts that the target holds a success.
@@ -59,7 +59,7 @@ impl<R> Assertion<R> for ToBeResultVariantAssertion
 where
     R: Resultish,
 {
-    type Output = AssertionResult;
+    type Output = AssertionOutput;
 
     fn execute(self, mut cx: AssertionContext, subject: R) -> Self::Output {
         cx.annotate("expected", format_args!("{:?}", self.expected));

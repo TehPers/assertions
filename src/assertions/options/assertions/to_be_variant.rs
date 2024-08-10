@@ -1,6 +1,6 @@
 use crate::{
     assertions::{options::Optionish, Assertion, AssertionContext},
-    AssertionResult,
+    AssertionOutput,
 };
 
 /// Asserts that the subject holds a value.
@@ -55,7 +55,7 @@ impl<O> Assertion<O> for ToBeOptionVariantAssertion
 where
     O: Optionish,
 {
-    type Output = AssertionResult;
+    type Output = AssertionOutput;
 
     fn execute(self, mut cx: AssertionContext, subject: O) -> Self::Output {
         cx.annotate("expected", format_args!("{:?}", self.expected));

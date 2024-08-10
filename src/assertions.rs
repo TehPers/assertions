@@ -28,7 +28,7 @@
 //!     assertions::{Assertion, AssertionContext},
 //!     metadata::Annotated,
 //!     prelude::*,
-//!     AssertionResult,
+//!     AssertionOutput,
 //! };
 //!
 //! // Input parameters are automatically annotated, so we need to wrap them
@@ -44,7 +44,7 @@
 //!     // What does this assertion return when it's executed? Sometimes
 //!     // assertions want to return other output types, like if they need to
 //!     // run asynchronously and have to return a future instead.
-//!     type Output = AssertionResult;
+//!     type Output = AssertionOutput;
 //!
 //!     fn execute(self, mut cx: AssertionContext, value: i32) -> Self::Output {
 //!         cx.annotate("my annotation", "this appears in failure messages");

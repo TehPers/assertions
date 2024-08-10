@@ -1,4 +1,4 @@
-use crate::{assertions::AssertionContext, AssertionResult};
+use crate::{assertions::AssertionContext, AssertionOutput};
 
 /// A type of assertion output that can be collected from an iterator and merged
 /// into a single output.
@@ -25,7 +25,7 @@ pub trait MergeableOutput {
     /// Merges an iterator of assertion outputs into a single output.
     ///
     /// This method may choose to short-circuit, but it is not guaranteed. For
-    /// example, while iterators of [`AssertionResult`]s can be short-circuited
+    /// example, while iterators of [`AssertionOutput`]s can be short-circuited
     /// since their success/failure status is already known, iterators over
     /// futures are unable to do the same since the status is not yet known.
     fn merge<I>(cx: AssertionContext, strategy: MergeStrategy, outputs: I) -> Self::Merged
@@ -33,8 +33,8 @@ pub trait MergeableOutput {
         I: IntoIterator<Item = Self>;
 }
 
-impl MergeableOutput for AssertionResult {
-    type Merged = AssertionResult;
+impl MergeableOutput for AssertionOutput {
+    type Merged = AssertionOutput;
 
     #[inline]
     fn merge<I>(cx: AssertionContext, strategy: MergeStrategy, outputs: I) -> Self::Merged

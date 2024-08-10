@@ -1,7 +1,7 @@
 use crate::{
     assertions::{Assertion, AssertionContext},
     metadata::Annotated,
-    AssertionResult,
+    AssertionOutput,
 };
 
 /// Asserts that the subject matches the given predicate.
@@ -47,7 +47,7 @@ impl<F, T> Assertion<T> for ToSatisfyAssertion<F>
 where
     F: FnOnce(T) -> bool,
 {
-    type Output = AssertionResult;
+    type Output = AssertionOutput;
 
     fn execute(self, mut cx: AssertionContext, subject: T) -> Self::Output {
         cx.annotate("predicate", &self.predicate);

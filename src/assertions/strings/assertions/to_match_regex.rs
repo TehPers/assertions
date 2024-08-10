@@ -5,7 +5,7 @@ use regex::Regex;
 use crate::{
     assertions::{Assertion, AssertionContext},
     metadata::Annotated,
-    AssertionResult,
+    AssertionOutput,
 };
 
 /// Asserts that the subject matches the given regular expression.
@@ -42,7 +42,7 @@ impl<T> Assertion<T> for ToMatchRegexAssertion
 where
     T: AsRef<str>,
 {
-    type Output = AssertionResult;
+    type Output = AssertionOutput;
 
     fn execute(self, mut cx: AssertionContext, subject: T) -> Self::Output {
         cx.annotate("pattern", &self.regex.as_str());

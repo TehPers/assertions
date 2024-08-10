@@ -1,7 +1,7 @@
 use crate::{
     assertions::{Assertion, AssertionContext},
     metadata::Annotated,
-    AssertionResult,
+    AssertionOutput,
 };
 
 /// Asserts that the subject contains the given substring.
@@ -37,7 +37,7 @@ where
     P: AsRef<str>,
     T: AsRef<str>,
 {
-    type Output = AssertionResult;
+    type Output = AssertionOutput;
 
     fn execute(self, mut cx: AssertionContext, subject: T) -> Self::Output {
         let pattern = self.pattern.inner().as_ref();

@@ -1,9 +1,9 @@
-use crate::AssertionResult;
+use crate::AssertionOutput;
 
 /// An assertion output that can be unwrapped.
 ///
 /// Unwrapping the output causes it to panic as soon as possible. For
-/// [`AssertionResult`]s, the value is converted into a [`Result`] and panics if
+/// [`AssertionOutput`]s, the value is converted into a [`Result`] and panics if
 /// the result is an [`Err`], for example. Other output types may choose to
 /// unwrap in a different manner (like unwrapping an inner output once it's
 /// available in the case of asynchronous outputs).
@@ -29,7 +29,7 @@ pub trait UnwrappableOutput {
     fn unwrap(self) -> Self::Unwrapped;
 }
 
-impl UnwrappableOutput for AssertionResult {
+impl UnwrappableOutput for AssertionOutput {
     type Unwrapped = ();
 
     #[inline]

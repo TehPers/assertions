@@ -85,4 +85,4 @@ pub mod specialization;
 
 mod macros;
 
-pub use assertions::AssertionResult;
+pub use assertions::AssertionOutput;
