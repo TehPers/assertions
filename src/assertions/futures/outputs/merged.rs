@@ -67,6 +67,7 @@ where
 {
     type Merged = MergedOutputsFuture<F>;
 
+    #[inline]
     fn merge<I>(cx: AssertionContext, strategy: MergeStrategy, outputs: I) -> Self::Merged
     where
         I: IntoIterator<Item = Self>,
