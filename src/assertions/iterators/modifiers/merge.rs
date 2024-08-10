@@ -126,3 +126,118 @@ where
         MergeableOutput::merge(cx, self.strategy, outputs)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::{iter::repeat, sync::mpsc::channel, thread::spawn, time::Duration};
+
+    use crate::prelude::*;
+
+    fn with_timeout<F>(t: Duration, f: F) -> bool
+    where
+        F: FnOnce() + Send + 'static,
+    {
+        let (done_tx, done_rx) = channel();
+        let _run = spawn(move || {
+            f();
+            let _ = done_tx.send(());
+        });
+
+        let output = done_rx.recv_timeout(t);
+        output.is_ok()
+    }
+
+    #[test]
+    fn test_any_short_circuit() {
+        let success = with_timeout(Duration::from_secs(1), || {
+            expect!(repeat(0), any, to_equal(0));
+        });
+        expect!(success, to_equal(true));
+    }
+
+    #[test]
+    fn test_any_infinite() {
+        let success = with_timeout(Duration::from_secs(1), || {
+            expect!(repeat(0), any, to_equal(1));
+        });
+        expect!(success, to_equal(false));
+    }
+
+    #[test]
+    fn test_all_short_circuit() {
+        let success = with_timeout(Duration::from_secs(1), || {
+            expect!(repeat(0), not, all, to_equal(1));
+        });
+        expect!(success, to_equal(true));
+    }
+
+    #[test]
+    fn test_all_infinite() {
+        let success = with_timeout(Duration::from_secs(1), || {
+            expect!(repeat(0), all, to_equal(0));
+        });
+        expect!(success, to_equal(false));
+    }
+}
+
+#[cfg(test)]
+mod async_tests {
+    use std::{
+        future::{ready, Future},
+        iter::repeat,
+        sync::mpsc::channel,
+        time::Duration,
+    };
+
+    use tokio::spawn;
+
+    use crate::prelude::*;
+
+    fn with_timeout<F>(t: Duration, f: F) -> bool
+    where
+        F: Future<Output = ()> + Send + 'static,
+    {
+        let (done_tx, done_rx) = channel();
+        let _run = spawn(async move {
+            f.await;
+            let _ = done_tx.send(());
+        });
+
+        let output = done_rx.recv_timeout(t);
+        output.is_ok()
+    }
+
+    #[tokio::test]
+    #[ignore = "currently async assertions do not short-circuit"]
+    async fn test_any_short_circuit() {
+        let success = with_timeout(Duration::from_secs(1), async {
+            expect!(repeat(ready(0)), any, when_ready, to_equal(0)).await;
+        });
+        expect!(success, to_equal(true));
+    }
+
+    #[tokio::test]
+    async fn test_any_infinite() {
+        let success = with_timeout(Duration::from_secs(1), async {
+            expect!(repeat(ready(0)), any, when_ready, to_equal(1)).await;
+        });
+        expect!(success, to_equal(false));
+    }
+
+    #[tokio::test]
+    #[ignore = "currently async assertions do not short-circuit"]
+    async fn test_all_short_circuit() {
+        let success = with_timeout(Duration::from_secs(1), async {
+            expect!(repeat(ready(0)), not, all, when_ready, to_equal(1)).await;
+        });
+        expect!(success, to_equal(true));
+    }
+
+    #[tokio::test]
+    async fn test_all_infinite() {
+        let success = with_timeout(Duration::from_secs(1), async {
+            expect!(repeat(ready(0)), all, when_ready, to_equal(0)).await;
+        });
+        expect!(success, to_equal(false));
+    }
+}

@@ -23,6 +23,11 @@ pub trait MergeableOutput {
     type Merged;
 
     /// Merges an iterator of assertion outputs into a single output.
+    ///
+    /// This method may choose to short-circuit, but it is not guaranteed. For
+    /// example, while iterators of [`AssertionResult`]s can be short-circuited
+    /// since their success/failure status is already known, iterators over
+    /// futures are unable to do the same since the status is not yet known.
     fn merge<I>(cx: AssertionContext, strategy: MergeStrategy, outputs: I) -> Self::Merged
     where
         I: IntoIterator<Item = Self>;
