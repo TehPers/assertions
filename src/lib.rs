@@ -46,6 +46,9 @@
 //!     predicate: |n| n % 2 == 1
 //! ```
 //!
+//! See the [`expect!`] macro's documentation for usage information. For a full
+//! list of modifiers and assertions, look at the [`prelude`] module.
+//!
 //! ## Crate features
 //!
 //! Many of the assertions require certain crate features to be enabled. Default
@@ -57,10 +60,6 @@
 //!   [regex](https://crates.io/crates/regex) to execute them.
 //! - `colors`*: Enables styled failure messages. Styled messages can always be
 //!   disabled by setting `NO_COLOR`.
-//!
-//! See the [`expect!`] macro's documentation for usage information. For a full
-//! list of modifiers and assertions, look at the [`prelude`] module.
-
 #![warn(
     missing_debug_implementations,
     missing_docs,

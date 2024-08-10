@@ -16,6 +16,15 @@ pub trait InvertibleOutput {
     /// If it is not yet known whether the output represents a success or
     /// failure, then a value is returned that inverts that output when it is
     /// known.
+    ///
+    /// The context passed into this method should represent the point at which
+    /// the output was inverted. For example, an output's internal context may
+    /// represent an execution flow going through `expect!(1, not, to_equal(2))`
+    /// and reaching the [`to_equal`] assertion, but the inversion would occur
+    /// at [`not`].
+    ///
+    /// [`not`]: crate::prelude::not
+    /// [`to_equal`]: crate::prelude::to_equal
     fn invert(self, cx: AssertionContext) -> Self::Inverted;
 }
 
