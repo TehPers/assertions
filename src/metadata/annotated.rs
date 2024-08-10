@@ -10,7 +10,7 @@ macro_rules! annotated {
         let wrapper = $crate::specialization::__SpecializeWrapper($value);
         (&wrapper)
             .__annotated_kind()
-            .annotate(wrapper.0, ::core::stringify!($value))
+            .annotate(wrapper.0, ::std::stringify!($value))
     }};
 }
 
@@ -20,7 +20,7 @@ macro_rules! annotated {
 /// representation is obtained in the following order of precedence:
 ///
 /// 1. the [`Debug`] representation, otherwise...
-/// 2. the [stringified](core::stringify) source code (that was annotated).
+/// 2. the [stringified](std::stringify) source code (that was annotated).
 ///
 /// The stringified source code is always available as well, which can be
 /// helpful for providing error messages that refer to the actual source code

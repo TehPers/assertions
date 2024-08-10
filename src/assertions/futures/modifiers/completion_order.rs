@@ -17,7 +17,7 @@ use crate::{
 ///
 /// ```
 /// # use expecters::prelude::*;
-/// use core::future::{pending, ready};
+/// use std::future::{pending, ready};
 /// # #[tokio::main(flavor = "current_thread")]
 /// # async fn main() {
 /// expect!(ready(1), when_ready_before(pending::<()>()), to_equal(1)).await;
@@ -29,7 +29,7 @@ use crate::{
 ///
 /// ```should_panic
 /// # use expecters::prelude::*;
-/// use core::future::{pending, ready};
+/// use std::future::{pending, ready};
 /// # #[tokio::main(flavor = "current_thread")]
 /// # async fn main() {
 /// expect!(pending::<()>(), when_ready_before(ready(1)), to_equal(())).await;
@@ -63,7 +63,7 @@ where
 ///
 /// ```
 /// # use expecters::prelude::*;
-/// use core::{future::ready, time::Duration};
+/// use std::{future::ready, time::Duration};
 /// use tokio::time::sleep;
 /// # #[tokio::main(flavor = "current_thread")]
 /// # async fn main() {
@@ -80,7 +80,7 @@ where
 ///
 /// ```should_panic
 /// # use expecters::prelude::*;
-/// use core::future::{pending, ready};
+/// use std::future::{pending, ready};
 /// # #[tokio::main(flavor = "current_thread")]
 /// # async fn main() {
 /// expect!(ready(1), when_ready_after(pending::<()>()), to_equal(1)).await;

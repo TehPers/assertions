@@ -151,12 +151,12 @@
 ///
 /// [`Annotated<T>`]: crate::metadata::Annotated
 /// [`AnnotatedAssertion<A, T>`]: crate::assertions::AnnotatedAssertion
-/// [`Debug`]: core::fmt::Debug
+/// [`Debug`]: std::fmt::Debug
 /// [`all`]: crate::prelude::all
 /// [`map`]: crate::prelude::map
 /// [`not`]: crate::prelude::not
 /// [`to_equal`]: crate::prelude::to_equal
-/// [stringified]: core::stringify
+/// [stringified]: std::stringify
 #[macro_export]
 macro_rules! expect {
     ($($tokens:tt)*) => {
@@ -225,7 +225,7 @@ macro_rules! __expect_inner {
     ) => {{
         const FRAMES: &'static [&'static str] = &[
             $($frames,)*
-            ::core::stringify!($frame_name),
+            ::std::stringify!($frame_name),
         ];
         FRAMES
     }};
@@ -238,7 +238,7 @@ macro_rules! __expect_inner {
     ) => {
         $crate::__expect_inner!(
             @build_ctx_frames,
-            [$($frames,)* ::core::stringify!($frame_name)],
+            [$($frames,)* ::std::stringify!($frame_name)],
             $($assertions)*
         )
     };

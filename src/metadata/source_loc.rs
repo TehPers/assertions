@@ -5,10 +5,10 @@ use std::fmt::{Display, Formatter};
 macro_rules! source_loc {
     () => {{
         const SOURCE_LOC: $crate::metadata::SourceLoc = $crate::metadata::SourceLoc::new(
-            ::core::module_path!(),
-            ::core::file!(),
-            ::core::line!(),
-            ::core::column!(),
+            ::std::module_path!(),
+            ::std::file!(),
+            ::std::line!(),
+            ::std::column!(),
         );
         &SOURCE_LOC
     }};

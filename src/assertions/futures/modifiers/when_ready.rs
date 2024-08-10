@@ -12,7 +12,7 @@ use crate::assertions::{
 ///
 /// ```
 /// # use expecters::prelude::*;
-/// use core::future::ready;
+/// use std::future::ready;
 /// # #[tokio::main(flavor = "current_thread")]
 /// # async fn main() {
 /// expect!(ready(1), when_ready, to_equal(1)).await;
@@ -24,7 +24,7 @@ use crate::assertions::{
 ///
 /// ```
 /// # use expecters::prelude::*;
-/// use core::future::ready;
+/// use std::future::ready;
 /// # #[tokio::main(flavor = "current_thread")]
 /// # async fn main() {
 /// expect!(

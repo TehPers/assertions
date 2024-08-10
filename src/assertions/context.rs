@@ -92,7 +92,7 @@ impl AssertionContext {
     /// value only has a meaningful string representation if the value
     /// implements [`Debug`].
     ///
-    /// [`Debug`]: core::fmt::Debug
+    /// [`Debug`]: std::fmt::Debug
     #[inline]
     pub fn try_annotate<T>(&mut self, key: &'static str, value: &Annotated<T>) {
         if value.kind() == AnnotatedKind::Debug {
