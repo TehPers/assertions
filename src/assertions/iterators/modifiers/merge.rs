@@ -131,6 +131,8 @@ where
 mod tests {
     use std::{iter::repeat, sync::mpsc::channel, thread::spawn, time::Duration};
 
+    use test_case::test_case;
+
     use crate::prelude::*;
 
     fn with_timeout<F>(t: Duration, f: F) -> bool
@@ -147,36 +149,13 @@ mod tests {
         output.is_ok()
     }
 
-    #[test]
-    fn test_any_short_circuit() {
-        let success = with_timeout(Duration::from_secs(1), || {
-            expect!(repeat(0), any, to_equal(0));
-        });
-        expect!(success, to_equal(true));
-    }
-
-    #[test]
-    fn test_any_infinite() {
-        let success = with_timeout(Duration::from_secs(1), || {
-            expect!(repeat(0), any, to_equal(1));
-        });
-        expect!(success, to_equal(false));
-    }
-
-    #[test]
-    fn test_all_short_circuit() {
-        let success = with_timeout(Duration::from_secs(1), || {
-            expect!(repeat(0), not, all, to_equal(1));
-        });
-        expect!(success, to_equal(true));
-    }
-
-    #[test]
-    fn test_all_infinite() {
-        let success = with_timeout(Duration::from_secs(1), || {
-            expect!(repeat(0), all, to_equal(0));
-        });
-        expect!(success, to_equal(false));
+    #[test_case(false, || expect!(repeat(0), all, to_equal(0)); "all infinite")]
+    #[test_case(true, || expect!(repeat(0), not, all, to_equal(1)); "all short-circuit")]
+    #[test_case(false, || expect!(repeat(0), any, to_equal(1)); "any infinite")]
+    #[test_case(true, || expect!(repeat(0), any, to_equal(0)); "any short-circuit")]
+    fn short_circuit(should_pass: bool, f: fn()) {
+        let success = with_timeout(Duration::from_secs(1), f);
+        expect!(success, to_equal(should_pass));
     }
 }
 
@@ -189,6 +168,7 @@ mod async_tests {
         time::Duration,
     };
 
+    use test_case::test_case;
     use tokio::spawn;
 
     use crate::prelude::*;
@@ -207,37 +187,43 @@ mod async_tests {
         output.is_ok()
     }
 
+    #[test_case(
+        false,
+        // Need to wrap these expectations because even constructing them is
+        // an infinite loop due to the iterator being collected into a
+        // FuturesUnordered
+        async {
+            expect!(repeat(ready(0)), all, when_ready, to_equal(0)).await
+        };
+        "all infinite"
+    )]
+    #[test_case(
+        true,
+        async {
+            expect!(repeat(ready(0)), not, all, when_ready, to_equal(1)).await
+        } => ignore["not implemented yet"];
+        "all short-circuit"
+    )]
+    #[test_case(
+        false,
+        async {
+            expect!(repeat(ready(0)), any, when_ready, to_equal(1)).await
+        };
+        "any infinite"
+    )]
+    #[test_case(
+        true,
+        async {
+            expect!(repeat(ready(0)), any, when_ready, to_equal(0)).await
+        } => ignore["not implemented yet"];
+        "any short-circuit"
+    )]
     #[tokio::test]
-    #[ignore = "currently async assertions do not short-circuit"]
-    async fn test_any_short_circuit() {
-        let success = with_timeout(Duration::from_secs(1), async {
-            expect!(repeat(ready(0)), any, when_ready, to_equal(0)).await;
-        });
-        expect!(success, to_equal(true));
-    }
-
-    #[tokio::test]
-    async fn test_any_infinite() {
-        let success = with_timeout(Duration::from_secs(1), async {
-            expect!(repeat(ready(0)), any, when_ready, to_equal(1)).await;
-        });
-        expect!(success, to_equal(false));
-    }
-
-    #[tokio::test]
-    #[ignore = "currently async assertions do not short-circuit"]
-    async fn test_all_short_circuit() {
-        let success = with_timeout(Duration::from_secs(1), async {
-            expect!(repeat(ready(0)), not, all, when_ready, to_equal(1)).await;
-        });
-        expect!(success, to_equal(true));
-    }
-
-    #[tokio::test]
-    async fn test_all_infinite() {
-        let success = with_timeout(Duration::from_secs(1), async {
-            expect!(repeat(ready(0)), all, when_ready, to_equal(0)).await;
-        });
-        expect!(success, to_equal(false));
+    async fn short_circuit<F>(should_pass: bool, f: F)
+    where
+        F: Future<Output = ()> + Send + 'static,
+    {
+        let success = with_timeout(Duration::from_secs(1), f);
+        expect!(success, to_equal(should_pass));
     }
 }
