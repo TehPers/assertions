@@ -190,6 +190,11 @@ macro_rules! try_expect {
     };
 }
 
+// Note: it's important to use the input tokens before stringifying them. This
+// is necessary to ensure that the tokens are treated as values instead of
+// arbitrary, meaningless tokens, and ensures that LSPs provide real completions
+// for those tokens instead of just letting the user type whatever without any
+// suggested completions.
 #[macro_export]
 #[doc(hidden)]
 macro_rules! __expect_inner {
@@ -199,17 +204,12 @@ macro_rules! __expect_inner {
         $($assertions:tt)*
     ) => {{
         let subject = $crate::annotated!($subject);
-        let cx = $crate::assertions::AssertionContext::__new(
-            ::std::string::ToString::to_string(&subject),
-            $crate::source_loc!(),
-            $crate::__expect_inner!(
-                @build_ctx_frames,
-                $($assertions)*
-            ),
-        );
-        let (root, _key) = $crate::assertions::general::__root(cx, subject);
+        let subject_repr = ::std::string::ToString::to_string(&subject);
+        let (root, _key) = $crate::assertions::general::__root(subject);
         $crate::__expect_inner!(
             @build_assertion,
+            [],
+            subject_repr,
             root,
             _key,
             $($assertions)*
@@ -232,6 +232,8 @@ macro_rules! __expect_inner {
     (
         // Base case (with params)
         @build_assertion,
+        [$($frame_name:expr,)*],
+        $subject:expr,
         $chain:expr,
         $key:expr,
         $assertion:ident($($param:expr),* $(,)?)
@@ -239,24 +241,47 @@ macro_rules! __expect_inner {
     ) => {{
         let (chain, _key) = $crate::__expect_inner!(@annotate, $chain, $key);
         let assertion = $assertion($($crate::annotated!($param),)*);
+        let cx = $crate::assertions::AssertionContext::__new(
+            $subject,
+            $crate::source_loc!(),
+            {
+                const FRAMES: &'static [&'static str] = &[
+                    $($frame_name,)*
+                    ::std::stringify!($assertion),
+                ];
+                FRAMES
+            },
+        );
         $crate::assertions::AssertionModifier::apply(
             chain,
+            cx,
             assertion,
         )
     }};
     (
         // Base case (without params)
         @build_assertion,
+        [$($frame_name:expr,)*],
+        $subject:expr,
         $chain:expr,
         $key:expr,
         $assertion:ident
         $(,)?
     ) => {
-        $crate::__expect_inner!(@build_assertion, $chain, $key, $assertion())
+        $crate::__expect_inner!(
+            @build_assertion,
+            [$($frame_name,)*],
+            $subject,
+            $chain,
+            $key,
+            $assertion()
+        )
     };
     (
         // Recursive case (with params)
         @build_assertion,
+        [$($frame_name:expr,)*],
+        $subject:expr,
         $chain:expr,
         $key:expr,
         $modifier:ident($($param:expr),* $(,)?),
@@ -268,11 +293,23 @@ macro_rules! __expect_inner {
             key,
             $($crate::annotated!($param),)*
         );
-        $crate::__expect_inner!(@build_assertion, chain, _key, $($rest)*)
+        $crate::__expect_inner!(
+            @build_assertion,
+            [
+                $($frame_name,)*
+                ::std::stringify!($modifier),
+            ],
+            $subject,
+            chain,
+            _key,
+            $($rest)*
+        )
     }};
     (
         // Recursive case (without params)
         @build_assertion,
+        [$($frame_name:expr,)*],
+        $subject:expr,
         $chain:expr,
         $key:expr,
         $modifier:ident,
@@ -280,6 +317,8 @@ macro_rules! __expect_inner {
     ) => {{
         $crate::__expect_inner!(
             @build_assertion,
+            [$($frame_name,)*],
+            $subject,
             $chain,
             $key,
             $modifier(),

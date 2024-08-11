@@ -1,6 +1,8 @@
 use std::fmt::Display;
 
-use crate::assertions::{key, Assertion, AssertionContext, AssertionModifier, SubjectKey};
+use crate::assertions::{
+    key, Assertion, AssertionContext, AssertionContextBuilder, AssertionModifier, SubjectKey,
+};
 
 /// Converts a value to its [`Display`] representation.
 ///
@@ -29,8 +31,8 @@ where
     type Output = M::Output;
 
     #[inline]
-    fn apply(self, next: A) -> Self::Output {
-        self.prev.apply(AsDisplayAssertion { next })
+    fn apply(self, cx: AssertionContextBuilder, next: A) -> Self::Output {
+        self.prev.apply(cx, AsDisplayAssertion { next })
     }
 }
 

@@ -7,6 +7,8 @@ macro_rules! annotated {
         #[allow(unused_imports)]
         use $crate::specialization::annotated::*;
 
+        // $value needs to be used as a value before it's stringified to get
+        // proper completions from tools like rust-analyzer
         let wrapper = $crate::specialization::__SpecializeWrapper($value);
         (&wrapper)
             .__annotated_kind()

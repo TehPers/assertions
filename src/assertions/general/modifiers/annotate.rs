@@ -1,7 +1,9 @@
 use std::fmt::Debug;
 
 use crate::{
-    assertions::{key, Assertion, AssertionContext, AssertionModifier, SubjectKey},
+    assertions::{
+        key, Assertion, AssertionContext, AssertionContextBuilder, AssertionModifier, SubjectKey,
+    },
     metadata::{Annotated, AnnotatedKind},
 };
 
@@ -54,11 +56,14 @@ where
     type Output = M::Output;
 
     #[inline]
-    fn apply(self, assertion: A) -> Self::Output {
-        self.prev.apply(AnnotateAssertion {
-            next: assertion,
-            annotate: self.annotate,
-        })
+    fn apply(self, cx: AssertionContextBuilder, assertion: A) -> Self::Output {
+        self.prev.apply(
+            cx,
+            AnnotateAssertion {
+                next: assertion,
+                annotate: self.annotate,
+            },
+        )
     }
 }
 

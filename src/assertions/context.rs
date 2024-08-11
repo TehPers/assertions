@@ -33,13 +33,15 @@ impl AssertionContext {
         subject: String,
         source_loc: SourceLoc,
         frames: &'static [&'static str],
-    ) -> Self {
-        Self {
-            subject,
-            source_loc,
-            visited: vec![],
-            remaining: frames,
-            recovered: vec![],
+    ) -> AssertionContextBuilder {
+        AssertionContextBuilder {
+            innerner: Self {
+                subject,
+                source_loc,
+                visited: vec![],
+                remaining: frames,
+                recovered: vec![],
+            },
         }
     }
 
@@ -175,6 +177,16 @@ impl AssertionContext {
 
         self
     }
+}
+
+/// Prepares an [`AssertionContext`] for use within an assertion.
+///
+/// This is passed up through the chain of
+/// [`AssertionModifier`](crate::assertions::AssertionModifier)s before the
+/// context is built and passed back down through the constructed assertions.
+#[derive(Clone, Debug)]
+pub struct AssertionContextBuilder {
+    pub(crate) innerner: AssertionContext,
 }
 
 #[derive(Clone, Debug)]

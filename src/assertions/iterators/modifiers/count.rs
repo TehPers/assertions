@@ -1,4 +1,6 @@
-use crate::assertions::{key, Assertion, AssertionContext, AssertionModifier, SubjectKey};
+use crate::assertions::{
+    key, Assertion, AssertionContext, AssertionContextBuilder, AssertionModifier, SubjectKey,
+};
 
 /// Counts the length of the subject, and executes an assertion on the result.
 ///
@@ -29,8 +31,8 @@ where
     type Output = M::Output;
 
     #[inline]
-    fn apply(self, next: A) -> Self::Output {
-        self.prev.apply(CountAssertion { next })
+    fn apply(self, cx: AssertionContextBuilder, next: A) -> Self::Output {
+        self.prev.apply(cx, CountAssertion { next })
     }
 }
 

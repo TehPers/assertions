@@ -1,6 +1,6 @@
 use crate::assertions::{
     iterators::{MergeStrategy, MergeableOutput},
-    key, Assertion, AssertionContext, AssertionModifier, SubjectKey,
+    key, Assertion, AssertionContext, AssertionContextBuilder, AssertionModifier, SubjectKey,
 };
 
 /// Executes an assertion on every value within the subject, and succeeds if and
@@ -117,11 +117,14 @@ where
     type Output = M::Output;
 
     #[inline]
-    fn apply(self, next: A) -> Self::Output {
-        self.prev.apply(MergeAssertion {
-            next,
-            strategy: self.strategy,
-        })
+    fn apply(self, cx: AssertionContextBuilder, next: A) -> Self::Output {
+        self.prev.apply(
+            cx,
+            MergeAssertion {
+                next,
+                strategy: self.strategy,
+            },
+        )
     }
 }
 

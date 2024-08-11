@@ -1,6 +1,6 @@
 use crate::assertions::{
     general::IntoInitializableOutput, key, results::Resultish, Assertion, AssertionContext,
-    AssertionModifier, SubjectKey,
+    AssertionContextBuilder, AssertionModifier, SubjectKey,
 };
 
 /// Asserts that the target holds a success, then continues the assertion with
@@ -40,8 +40,8 @@ where
     type Output = M::Output;
 
     #[inline]
-    fn apply(self, next: A) -> Self::Output {
-        self.prev.apply(OkAndAssertion { next })
+    fn apply(self, cx: AssertionContextBuilder, next: A) -> Self::Output {
+        self.prev.apply(cx, OkAndAssertion { next })
     }
 }
 

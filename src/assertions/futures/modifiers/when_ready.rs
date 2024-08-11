@@ -1,7 +1,8 @@
 use std::future::Future;
 
 use crate::assertions::{
-    futures::WhenReadyFuture, key, Assertion, AssertionContext, AssertionModifier, SubjectKey,
+    futures::WhenReadyFuture, key, Assertion, AssertionContext, AssertionContextBuilder,
+    AssertionModifier, SubjectKey,
 };
 
 /// Executes an assertion on the output of a future.
@@ -57,8 +58,8 @@ where
 {
     type Output = M::Output;
 
-    fn apply(self, next: A) -> Self::Output {
-        self.prev.apply(WhenReadyAssertion { next })
+    fn apply(self, cx: AssertionContextBuilder, next: A) -> Self::Output {
+        self.prev.apply(cx, WhenReadyAssertion { next })
     }
 }
 

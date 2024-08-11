@@ -3,7 +3,7 @@ use std::future::Future;
 use crate::{
     assertions::{
         futures::{CompletionOrder, CompletionOrderFuture},
-        key, Assertion, AssertionContext, AssertionModifier, SubjectKey,
+        key, Assertion, AssertionContext, AssertionContextBuilder, AssertionModifier, SubjectKey,
     },
     metadata::Annotated,
 };
@@ -120,12 +120,15 @@ where
     type Output = M::Output;
 
     #[inline]
-    fn apply(self, next: A) -> Self::Output {
-        self.prev.apply(CompletionOrderAssertion {
-            next,
-            fut: self.fut,
-            order: self.order,
-        })
+    fn apply(self, cx: AssertionContextBuilder, next: A) -> Self::Output {
+        self.prev.apply(
+            cx,
+            CompletionOrderAssertion {
+                next,
+                fut: self.fut,
+                order: self.order,
+            },
+        )
     }
 }
 

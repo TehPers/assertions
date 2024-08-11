@@ -1,5 +1,6 @@
 use crate::assertions::{
-    general::InvertibleOutput, key, Assertion, AssertionContext, AssertionModifier, SubjectKey,
+    general::InvertibleOutput, key, Assertion, AssertionContext, AssertionContextBuilder,
+    AssertionModifier, SubjectKey,
 };
 
 /// Inverts the result of an assertion.
@@ -36,8 +37,8 @@ where
     type Output = M::Output;
 
     #[inline]
-    fn apply(self, next: A) -> Self::Output {
-        self.prev.apply(NotAssertion { next })
+    fn apply(self, cx: AssertionContextBuilder, next: A) -> Self::Output {
+        self.prev.apply(cx, NotAssertion { next })
     }
 }
 

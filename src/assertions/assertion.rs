@@ -1,6 +1,6 @@
 use std::{fmt::Debug, marker::PhantomData};
 
-use super::AssertionContext;
+use super::{AssertionContext, AssertionContextBuilder};
 
 /// Evaluates a subject and determines whether it satisfies a condition.
 ///
@@ -32,10 +32,12 @@ pub trait AssertionModifier<A> {
 
     /// Applies this modifier to a given assertion, then executes the assertion.
     ///
-    /// This is generally a recursive function.
-    ///
-    /// TODO
-    fn apply(self, next: A) -> Self::Output;
+    /// This is usually a recursive function that calls an inner modifier's
+    /// `apply` function. Its purpose is to construct the assertion that will be
+    /// executed, and to invert the flow so that the assertion subject flows
+    /// from the [`Root`](crate::assertions::general::Root) through each of the
+    /// modifiers in order before reaching the final assertion.
+    fn apply(self, cx: AssertionContextBuilder, next: A) -> Self::Output;
 }
 
 /// Indicates the type of subject being passed to the next modifier/assertion in

@@ -1,5 +1,7 @@
 use crate::{
-    assertions::{key, Assertion, AssertionContext, AssertionModifier, SubjectKey},
+    assertions::{
+        key, Assertion, AssertionContext, AssertionContextBuilder, AssertionModifier, SubjectKey,
+    },
     metadata::Annotated,
 };
 
@@ -81,11 +83,14 @@ where
     type Output = M::Output;
 
     #[inline]
-    fn apply(self, next: A) -> Self::Output {
-        self.prev.apply(MapAssertion {
-            next,
-            map: self.map,
-        })
+    fn apply(self, cx: AssertionContextBuilder, next: A) -> Self::Output {
+        self.prev.apply(
+            cx,
+            MapAssertion {
+                next,
+                map: self.map,
+            },
+        )
     }
 }
 

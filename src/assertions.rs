@@ -109,6 +109,7 @@
 //!     assertions::{
 //!         Assertion,
 //!         AssertionContext,
+//!         AssertionContextBuilder,
 //!         AssertionModifier,
 //!         SubjectKey,
 //!         key,
@@ -140,8 +141,8 @@
 //! {
 //!     type Output = M::Output; // the output at this step, usually M::Output
 //!
-//!     fn apply(self, next: A) -> Self::Output {
-//!         self.0.apply(DividedByAssertion(next, self.1))
+//!     fn apply(self, cx: AssertionContextBuilder, next: A) -> Self::Output {
+//!         self.0.apply(cx, DividedByAssertion(next, self.1))
 //!     }
 //! }
 //!
