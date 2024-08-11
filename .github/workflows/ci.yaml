@@ -1,0 +1,65 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: nightly
+          components: rustfmt
+      - name: Check formatting
+        run: cargo fmt --check
+
+  lint:
+    name: Lint
+    needs:
+      - format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@clippy
+      - name: Run clippy
+        run: cargo clippy --tests -- -D warnings
+
+  test:
+    name: Test (${{ matrix.name }})
+    needs:
+      - format
+      - lint
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        name:
+          - all features
+          - no features
+        include:
+          - name: all features
+            flags: ""
+          - name: no features
+            flags: --no-default-features
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: nightly
+          components: rustfmt
+      - name: Run tests
+        run: cargo test --verbose
