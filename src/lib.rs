@@ -10,10 +10,15 @@
 //! ```
 //! use expecters::prelude::*;
 //!
-//! # #[tokio::main(flavor = "current_thread")]
-//! # async fn main() {
+#![cfg_attr(
+    feature = "futures",
+    doc = r#" # #[tokio::main(flavor = "current_thread")]"#,
+    doc = " # async fn main() {"
+)]
+#![cfg_attr(not(feature = "futures"), doc = " # fn main() {")]
 //! expect!(1, as_display, to_equal("1"));
 //! expect!(1..=5, count, to_equal(5));
+//! # #[cfg(feature = "futures")]
 //! expect!(
 //!     [get_cat_url(0), get_cat_url(5)],
 //!     all,

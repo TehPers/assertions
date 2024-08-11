@@ -192,7 +192,7 @@ mod tests {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "futures"))]
 mod async_tests {
     use std::{
         future::{ready, Future},
