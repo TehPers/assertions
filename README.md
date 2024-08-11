@@ -20,3 +20,8 @@ async fn get_cat_url(id: u32) -> String {
     format!("cats/{id}.png")
 }
 ```
+
+## License
+
+This repository is dual licensed under [MIT](./LICENSE-MIT) and
+[APACHE-2.0](./LICENSE-APACHE). You may choose which license you wish to use.
