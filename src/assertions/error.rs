@@ -3,8 +3,6 @@ use std::{
     fmt::{Debug, Display, Formatter},
 };
 
-use owo_colors::{OwoColorize, Stream, SupportsColorsDisplay};
-
 use crate::assertions::ContextFrame;
 
 use super::AssertionContext;
@@ -87,43 +85,50 @@ impl AssertionError {
 }
 
 #[cfg(feature = "colors")]
-fn colored<'a, T, U, F>(val: &'a T, apply: F) -> SupportsColorsDisplay<'a, T, U, F>
-where
-    T: OwoColorize,
-    F: Fn(&'a T) -> U,
-{
-    val.if_supports_color(Stream::Stderr, apply)
+mod styles {
+    use std::fmt::Display;
+
+    use owo_colors::{OwoColorize, Stream};
+
+    pub fn dimmed<'a>(s: &'a impl Display) -> impl Display + 'a {
+        OwoColorize::if_supports_color(s, Stream::Stderr, |s| s.dimmed())
+    }
+
+    pub fn bright_red<'a>(s: &'a impl Display) -> impl Display + 'a {
+        OwoColorize::if_supports_color(s, Stream::Stderr, |s| s.bright_red())
+    }
+}
+
+#[cfg(not(feature = "colors"))]
+mod styles {
+    pub fn dimmed<T>(s: &T) -> &T {
+        s
+    }
+
+    pub fn bright_red<T>(s: &T) -> &T {
+        s
+    }
 }
 
 impl Debug for AssertionError {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        // TODO: keep colors?
         writeln!(f, "assertion failed:")?;
         writeln!(
             f,
             "  {}",
-            colored(&format_args!("at: {}", self.cx.source_loc), |text| text
-                .dimmed())
+            styles::dimmed(&format_args!("at: {}", self.cx.source_loc)),
         )?;
         writeln!(
             f,
             "  {}",
-            colored(&format_args!("subject: {}", self.cx.subject), |text| text
-                .dimmed())
+            styles::dimmed(&format_args!("subject: {}", self.cx.subject)),
         )?;
         writeln!(f)?;
 
         fn write_frame(f: &mut Formatter, frame: &ContextFrame, comment: &str) -> std::fmt::Result {
             writeln!(f, "{} {}:{comment}", " ", frame.assertion_name)?;
             for (key, value) in &frame.annotations {
-                #[cfg(feature = "colors")]
-                writeln!(
-                    f,
-                    "    {}",
-                    colored(&format_args!("{key}: {value}"), |text| text.dimmed())
-                )?;
-                #[cfg(not(feature = "colors"))]
-                writeln!(f, "    {key}: {value}")?;
+                writeln!(f, "    {}", styles::dimmed(&format_args!("{key}: {value}")))?;
             }
             writeln!(f)?;
             Ok(())
@@ -134,7 +139,7 @@ impl Debug for AssertionError {
         let mut idx = 0;
         for frame in self.cx.visited.iter() {
             let comment = if idx == self.cx.visited.len() - 1 {
-                format!(" {}", colored(&self.message, |text| text.bright_red()))
+                format!(" {}", styles::bright_red(&self.message))
             } else {
                 String::new()
             };
@@ -150,11 +155,7 @@ impl Debug for AssertionError {
 
         // Write non-visited frames
         for frame in &self.cx.remaining[self.cx.recovered.len()..] {
-            writeln!(
-                f,
-                "  {frame}: {}",
-                colored(&"(not visited)", |text| text.dimmed())
-            )?;
+            writeln!(f, "  {frame}: {}", styles::dimmed(&"(not visited)"))?;
             idx += 1;
         }
 
@@ -163,6 +164,7 @@ impl Debug for AssertionError {
 }
 
 impl Display for AssertionError {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         Debug::fmt(self, f)
     }
