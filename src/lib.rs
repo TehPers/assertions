@@ -1,5 +1,9 @@
-//! Build complex, self-describing assertions by chaining together reusable methods.
-//! Supports both synchronous and asynchronous assertions.
+//! Build complex, self-describing assertions by chaining together reusable
+//! methods. Supports both synchronous and asynchronous assertions.
+//!
+//! ```sh
+//! cargo add --dev expecters
+//! ```
 //!
 //! ## Example
 //!
