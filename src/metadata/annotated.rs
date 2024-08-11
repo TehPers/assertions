@@ -144,6 +144,7 @@ mod tests {
     #[test_case(annotated!("test"), AnnotatedKind::Debug, "\"test\"", "\"test\""; "debug string")]
     #[test_case(annotated!(UseStringify(1)), AnnotatedKind::Stringify, "UseStringify(1)", "UseStringify(1)"; "stringify simple")]
     #[test_case(annotated!(UseStringify(1 + 3)), AnnotatedKind::Stringify, "UseStringify(1 + 3)", "UseStringify(1 + 3)"; "stringify addition")]
+    #[allow(clippy::needless_pass_by_value)]
     fn annotated_macro<T>(
         annotated: Annotated<T>,
         kind: AnnotatedKind,

@@ -63,6 +63,7 @@ where
             *projected.fut_done || matches!(projected.fut.poll(cx), Poll::Ready(_));
 
         // Get the success/error for the assertion
+        #[allow(clippy::match_same_arms)]
         let result = match (
             projected.order,
             *projected.fut_done,

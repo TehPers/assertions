@@ -30,7 +30,7 @@ where
     fn clone(&self) -> Self {
         Self {
             prev: self.prev.clone(),
-            annotate: self.annotate.clone(),
+            annotate: self.annotate,
         }
     }
 }
@@ -76,7 +76,7 @@ where
     fn clone(&self) -> Self {
         Self {
             next: self.next.clone(),
-            annotate: self.annotate.clone(),
+            annotate: self.annotate,
         }
     }
 }

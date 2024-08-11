@@ -90,12 +90,12 @@ mod styles {
 
     use owo_colors::{OwoColorize, Stream};
 
-    pub fn dimmed<'a>(s: &'a impl Display) -> impl Display + 'a {
-        OwoColorize::if_supports_color(s, Stream::Stderr, |s| s.dimmed())
+    pub fn dimmed(s: &impl Display) -> impl Display + '_ {
+        s.if_supports_color(Stream::Stderr, |s| s.dimmed())
     }
 
-    pub fn bright_red<'a>(s: &'a impl Display) -> impl Display + 'a {
-        OwoColorize::if_supports_color(s, Stream::Stderr, |s| s.bright_red())
+    pub fn bright_red(s: &impl Display) -> impl Display + '_ {
+        s.if_supports_color(Stream::Stderr, |s| s.bright_red())
     }
 }
 
@@ -108,6 +108,15 @@ mod styles {
     pub fn bright_red<T>(s: &T) -> &T {
         s
     }
+}
+
+fn write_frame(f: &mut Formatter, frame: &ContextFrame, comment: &str) -> std::fmt::Result {
+    writeln!(f, "  {}:{comment}", frame.assertion_name)?;
+    for (key, value) in &frame.annotations {
+        writeln!(f, "    {}", styles::dimmed(&format_args!("{key}: {value}")))?;
+    }
+    writeln!(f)?;
+    Ok(())
 }
 
 impl Debug for AssertionError {
@@ -125,19 +134,10 @@ impl Debug for AssertionError {
         )?;
         writeln!(f)?;
 
-        fn write_frame(f: &mut Formatter, frame: &ContextFrame, comment: &str) -> std::fmt::Result {
-            writeln!(f, "{} {}:{comment}", " ", frame.assertion_name)?;
-            for (key, value) in &frame.annotations {
-                writeln!(f, "    {}", styles::dimmed(&format_args!("{key}: {value}")))?;
-            }
-            writeln!(f)?;
-            Ok(())
-        }
-
         // Write visited frames
         writeln!(f, "steps:")?;
         let mut idx = 0;
-        for frame in self.cx.visited.iter() {
+        for frame in &self.cx.visited {
             let comment = if idx == self.cx.visited.len() - 1 {
                 format!(" {}", styles::bright_red(&self.message))
             } else {

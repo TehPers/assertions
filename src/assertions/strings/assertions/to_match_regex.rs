@@ -21,12 +21,18 @@ use crate::{
 /// # use expecters::prelude::*;
 /// expect!("abcde", to_match_regex(r"\d+"));
 /// ```
+///
+/// ## Panics
+///
+/// This panics immediately, without executing the assertion, if the provided
+/// pattern is an invalid regular expression.
+#[allow(clippy::needless_pass_by_value)]
 pub fn to_match_regex<P>(pattern: Annotated<P>) -> ToMatchRegexAssertion
 where
     P: AsRef<str>,
 {
     let pattern = pattern.inner().as_ref();
-    let regex = Regex::new(pattern.as_ref()).expect("invalid regex");
+    let regex = Regex::new(pattern).expect("invalid regex");
     ToMatchRegexAssertion {
         regex: Arc::new(regex),
     }
@@ -45,7 +51,7 @@ where
     type Output = AssertionOutput;
 
     fn execute(self, mut cx: AssertionContext, subject: T) -> Self::Output {
-        cx.annotate("pattern", &self.regex.as_str());
+        cx.annotate("pattern", self.regex.as_str());
 
         cx.pass_if(
             self.regex.is_match(subject.as_ref()),

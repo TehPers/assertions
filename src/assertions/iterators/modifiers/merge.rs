@@ -226,28 +226,28 @@ mod async_tests {
         // an infinite loop due to the iterator being collected into a
         // FuturesUnordered
         async {
-            expect!(repeat(ready(0)), all, when_ready, to_equal(0)).await
+            expect!(repeat(ready(0)), all, when_ready, to_equal(0)).await;
         };
         "all infinite"
     )]
     #[test_case(
         true,
         async {
-            expect!(repeat(ready(0)), not, all, when_ready, to_equal(1)).await
+            expect!(repeat(ready(0)), not, all, when_ready, to_equal(1)).await;
         } => ignore["not implemented yet"];
         "all short-circuit"
     )]
     #[test_case(
         false,
         async {
-            expect!(repeat(ready(0)), any, when_ready, to_equal(1)).await
+            expect!(repeat(ready(0)), any, when_ready, to_equal(1)).await;
         };
         "any infinite"
     )]
     #[test_case(
         true,
         async {
-            expect!(repeat(ready(0)), any, when_ready, to_equal(0)).await
+            expect!(repeat(ready(0)), any, when_ready, to_equal(0)).await;
         } => ignore["not implemented yet"];
         "any short-circuit"
     )]
@@ -266,6 +266,7 @@ mod async_tests {
     /// the assertion is not.
     #[tokio::test]
     async fn opaque_futures() {
+        #[allow(clippy::unused_async)]
         async fn get_cat_url(id: u32) -> String {
             format!("cats/{id}.png")
         }

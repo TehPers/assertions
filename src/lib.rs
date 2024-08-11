@@ -86,7 +86,7 @@
     clippy::pedantic,
     clippy::style
 )]
-#![allow(clippy::module_name_repetitions)]
+#![allow(clippy::missing_errors_doc, clippy::module_name_repetitions)]
 #![forbid(unsafe_code)]
 
 pub mod assertions;

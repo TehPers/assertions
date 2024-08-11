@@ -102,6 +102,7 @@ impl AssertionContext {
 
     /// Creates a new success value.
     #[inline]
+    #[must_use]
     pub fn pass<O>(self) -> O
     where
         O: InitializableOutput,
