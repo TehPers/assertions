@@ -3,15 +3,14 @@ use std::fmt::{Display, Formatter};
 #[macro_export]
 #[doc(hidden)]
 macro_rules! source_loc {
-    () => {{
-        const SOURCE_LOC: $crate::metadata::SourceLoc = $crate::metadata::SourceLoc::new(
+    () => {
+        $crate::metadata::SourceLoc::new(
             ::std::module_path!(),
             ::std::file!(),
             ::std::line!(),
             ::std::column!(),
-        );
-        &SOURCE_LOC
-    }};
+        )
+    };
 }
 
 /// A location in a source code file.

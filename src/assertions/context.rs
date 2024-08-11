@@ -20,7 +20,7 @@ use super::general::InitializableOutput;
 #[derive(Clone, Debug)]
 pub struct AssertionContext {
     pub(crate) subject: String,
-    pub(crate) source_loc: &'static SourceLoc,
+    pub(crate) source_loc: SourceLoc,
     pub(crate) visited: Vec<ContextFrame>,
     pub(crate) remaining: &'static [&'static str],
     pub(crate) recovered: Vec<ContextFrame>,
@@ -31,7 +31,7 @@ impl AssertionContext {
     #[must_use]
     pub fn __new(
         subject: String,
-        source_loc: &'static SourceLoc,
+        source_loc: SourceLoc,
         frames: &'static [&'static str],
     ) -> Self {
         Self {
