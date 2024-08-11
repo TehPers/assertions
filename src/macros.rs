@@ -204,7 +204,6 @@ macro_rules! __expect_inner {
             $crate::source_loc!(),
             $crate::__expect_inner!(
                 @build_ctx_frames,
-                [],
                 $($assertions)*
             ),
         );
@@ -219,31 +218,15 @@ macro_rules! __expect_inner {
 
     // Build context frame names (from modifier/assertion names)
     (
-        // Base case
         @build_ctx_frames,
-        [$($frames:expr),*],
-        $frame_name:ident $(($($_:tt)*))?
+        $($frame_name:ident $(($($_:tt)*))?),*
         $(,)?
     ) => {{
         const FRAMES: &'static [&'static str] = &[
-            $($frames,)*
-            ::std::stringify!($frame_name),
+            $(::std::stringify!($frame_name),)*
         ];
         FRAMES
     }};
-    (
-        // Recursive case
-        @build_ctx_frames,
-        [$($frames:expr),*],
-        $frame_name:ident $(($($_:tt)*))?,
-        $($assertions:tt)*
-    ) => {
-        $crate::__expect_inner!(
-            @build_ctx_frames,
-            [$($frames,)* ::std::stringify!($frame_name)],
-            $($assertions)*
-        )
-    };
 
     // Build assertion (chain modifiers and final assertion)
     (
