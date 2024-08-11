@@ -19,13 +19,25 @@ use crate::assertions::{
 /// expect!([1, 3, 5], all, to_equal(5));
 /// ```
 ///
-/// Requires that the rest of the assertion is [`Clone`]. For example, comparing
-/// each item to a non-cloneable value will not compile:
+/// Requires that the rest of the assertion is [`Clone`]. The subject of the
+/// assertion doesn't need to be cloneable, but the rest of the assertion does.
+/// For example, this works fine:
+///
+/// ```
+/// # use expecters::prelude::*;
+/// #[derive(PartialEq)]
+/// struct NotClone(i32);
+/// expect!([NotClone(0)], all, to_satisfy(|x| x == NotClone(0)));
+/// ```
+///
+/// This does not though since `to_equal` takes ownership of a non-cloneable
+/// value:
 ///
 /// ```compile_fail
 /// # use expecters::prelude::*;
+/// #[derive(PartialEq)]
 /// struct NotClone(i32);
-/// expect!([NotClone(0)], all, map(|NotClone(x)| x), to_equal(0));
+/// expect!([NotClone(0)], all, to_equal(NonClone(0)));
 /// ```
 #[inline]
 pub fn all<T, M>(prev: M, _: SubjectKey<T>) -> (MergeModifier<M>, SubjectKey<T::Item>)
@@ -55,6 +67,27 @@ where
 /// ```should_panic
 /// # use expecters::prelude::*;
 /// expect!([1, 3, 5], any, to_equal(4));
+/// ```
+///
+/// Requires that the rest of the assertion is [`Clone`]. The subject of the
+/// assertion doesn't need to be cloneable, but the rest of the assertion does.
+/// For example, this works fine:
+///
+/// ```
+/// # use expecters::prelude::*;
+/// #[derive(PartialEq)]
+/// struct NotClone(i32);
+/// expect!([NotClone(0)], any, to_satisfy(|x| x == NotClone(0)));
+/// ```
+///
+/// This does not though since `to_equal` takes ownership of a non-cloneable
+/// value:
+///
+/// ```compile_fail
+/// # use expecters::prelude::*;
+/// #[derive(PartialEq)]
+/// struct NotClone(i32);
+/// expect!([NotClone(0)], any, to_equal(NonClone(0)));
 /// ```
 #[inline]
 pub fn any<T, M>(prev: M, _: SubjectKey<T>) -> (MergeModifier<M>, SubjectKey<T::Item>)
@@ -225,5 +258,24 @@ mod async_tests {
     {
         let success = with_timeout(Duration::from_secs(1), f);
         expect!(success, to_equal(should_pass));
+    }
+
+    /// Ensures that assertions that use non-Clone opaque features can still be
+    /// executed with the merging modifiers. This means the assertion executed
+    /// after the merging modifier must be Clone even if the subject passed into
+    /// the assertion is not.
+    #[tokio::test]
+    async fn opaque_futures() {
+        async fn get_cat_url(id: u32) -> String {
+            format!("cats/{id}.png")
+        }
+
+        expect!(
+            [get_cat_url(1), get_cat_url(2)],
+            all,
+            when_ready,
+            to_contain_substr(".png")
+        )
+        .await;
     }
 }

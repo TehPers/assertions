@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use crate::{
     assertions::{key, Assertion, AssertionContext, AssertionModifier, SubjectKey},
     metadata::{Annotated, AnnotatedKind},
@@ -16,10 +18,33 @@ pub fn __annotate<T, M>(
 /// after modifiers are applied. When using the [`expect!`](crate::expect!)
 /// macro, this is applied automatically before every modifier and the final
 /// assertion in the chain.
-#[derive(Clone, Debug)]
 pub struct AnnotateModifier<T, M> {
     prev: M,
     annotate: fn(T) -> Annotated<T>,
+}
+
+impl<T, M> Clone for AnnotateModifier<T, M>
+where
+    M: Clone,
+{
+    fn clone(&self) -> Self {
+        Self {
+            prev: self.prev.clone(),
+            annotate: self.annotate.clone(),
+        }
+    }
+}
+
+impl<T, M> Debug for AnnotateModifier<T, M>
+where
+    M: Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AnnotateModifier")
+            .field("prev", &self.prev)
+            .field("annotate", &self.annotate)
+            .finish()
+    }
 }
 
 impl<T, M, A> AssertionModifier<A> for AnnotateModifier<T, M>
@@ -39,10 +64,33 @@ where
 
 /// Assertion for [`AnnotateModifier`]. See the docs for the modifier for more
 /// information.
-#[derive(Clone, Debug)]
 pub struct AnnotateAssertion<A, T> {
     next: A,
     annotate: fn(T) -> Annotated<T>,
+}
+
+impl<A, T> Clone for AnnotateAssertion<A, T>
+where
+    A: Clone,
+{
+    fn clone(&self) -> Self {
+        Self {
+            next: self.next.clone(),
+            annotate: self.annotate.clone(),
+        }
+    }
+}
+
+impl<A, T> Debug for AnnotateAssertion<A, T>
+where
+    A: Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AnnotateAssertion")
+            .field("next", &self.next)
+            .field("annotate", &self.annotate)
+            .finish()
+    }
 }
 
 impl<A, T> Assertion<T> for AnnotateAssertion<A, T>
