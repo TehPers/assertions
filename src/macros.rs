@@ -177,14 +177,16 @@ macro_rules! expect {
 /// ```
 /// # use expecters::prelude::*;
 /// let result = try_expect!(1, to_equal(2));
-/// expect!(result.into_result(), to_be_err);
+/// expect!(result, to_be_err);
 /// ```
 ///
 /// See [`expect!`] for more information on how to use this macro.
 #[macro_export]
 macro_rules! try_expect {
     ($($tokens:tt)*) => {
-        $crate::__expect_inner!($($tokens)*)
+        $crate::assertions::general::UnwrappableOutput::try_unwrap(
+            $crate::__expect_inner!($($tokens)*)
+        )
     };
 }
 

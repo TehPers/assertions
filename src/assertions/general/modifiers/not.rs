@@ -65,7 +65,7 @@ mod tests {
 
     #[test]
     fn preserves_context() {
-        let res = try_expect!("blah", not, not, to_contain_substr("world")).into_result();
+        let res = try_expect!("blah", not, not, to_contain_substr("world"));
         expect!(
             res,
             to_be_err_and,

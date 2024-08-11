@@ -15,7 +15,7 @@ pub use crate::{
     assertions::{
         general::{
             map, not, to_be_greater_than, to_be_greater_than_or_equal_to, to_be_less_than,
-            to_be_less_than_or_equal_to, to_equal, to_satisfy, to_satisfy_all, to_satisfy_any,
+            to_be_less_than_or_equal_to, to_equal, to_satisfy, to_satisfy_with,
         },
         iterators::{all, any, count, nth},
         options::{to_be_none, to_be_some, to_be_some_and},
