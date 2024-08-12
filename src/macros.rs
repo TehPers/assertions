@@ -40,19 +40,12 @@
 /// expect!(1, not, expecters::prelude::to_equal(0));
 /// ```
 ///
-/// To fix this, either import [`to_equal`] directly, or alias it:
+/// To fix this, remove the path:
 ///
 /// ```
-/// # #[allow(unused_import)]
 /// # use expecters::prelude::*;
-/// use expecters::prelude::to_equal as expect_to_equal;
-/// expect!(1, not, expect_to_equal(0));
+/// expect!(1, not, to_equal(0));
 /// ```
-///
-/// Note that aliasing a modifier or assertion will change its name in the error
-/// message it generates as well. Error messages produced by the above assertion
-/// will refer to the final parameter as `expect_to_equal` instead of `to_equal`
-/// because of the alias.
 ///
 /// Modifiers are special assertion builders that are used to modify a later
 /// assertion either by transforming the input to that assertion (like [`map`]),
@@ -205,13 +198,12 @@ macro_rules! __expect_inner {
     ) => {{
         let subject = $crate::annotated!($subject);
         let subject_repr = ::std::string::ToString::to_string(&subject);
-        let (root, _key) = $crate::assertions::general::__root(subject);
+        let builder = $crate::assertions::AssertionBuilder::__new(subject);
         $crate::__expect_inner!(
             @build_assertion,
             [],
             subject_repr,
-            root,
-            _key,
+            builder,
             $($assertions)*
         )
     }};
@@ -222,13 +214,12 @@ macro_rules! __expect_inner {
         @build_assertion,
         [$($frame_name:expr,)*],
         $subject:expr,
-        $chain:expr,
-        $key:expr,
+        $builder:expr,
         $assertion:ident($($param:expr),* $(,)?)
         $(,)?
     ) => {{
-        let (chain, _key) = $crate::__expect_inner!(@annotate, $chain, $key);
-        let assertion = $assertion($($crate::annotated!($param),)*);
+        let builder = $crate::__expect_inner!(@annotate, $builder);
+        let assertion = builder.$assertion($($crate::annotated!($param),)*);
         let cx = $crate::assertions::AssertionContext::__new(
             $subject,
             $crate::source_loc!(),
@@ -240,8 +231,8 @@ macro_rules! __expect_inner {
                 FRAMES
             },
         );
-        $crate::assertions::AssertionModifier::apply(
-            chain,
+        $crate::assertions::AssertionBuilder::__apply(
+            builder,
             cx,
             assertion,
         )
@@ -251,8 +242,7 @@ macro_rules! __expect_inner {
         @build_assertion,
         [$($frame_name:expr,)*],
         $subject:expr,
-        $chain:expr,
-        $key:expr,
+        $builder:expr,
         $assertion:ident
         $(,)?
     ) => {
@@ -260,8 +250,7 @@ macro_rules! __expect_inner {
             @build_assertion,
             [$($frame_name,)*],
             $subject,
-            $chain,
-            $key,
+            $builder,
             $assertion()
         )
     };
@@ -270,15 +259,12 @@ macro_rules! __expect_inner {
         @build_assertion,
         [$($frame_name:expr,)*],
         $subject:expr,
-        $chain:expr,
-        $key:expr,
+        $builder:expr,
         $modifier:ident($($param:expr),* $(,)?),
         $($rest:tt)*
     ) => {{
-        let (chain, key) = $crate::__expect_inner!(@annotate, $chain, $key);
-        let (chain, _key) = $modifier(
-            chain,
-            key,
+        let builder = $crate::__expect_inner!(@annotate, $builder);
+        let builder = builder.$modifier(
             $($crate::annotated!($param),)*
         );
         $crate::__expect_inner!(
@@ -288,8 +274,7 @@ macro_rules! __expect_inner {
                 ::std::stringify!($modifier),
             ],
             $subject,
-            chain,
-            _key,
+            builder,
             $($rest)*
         )
     }};
@@ -298,8 +283,7 @@ macro_rules! __expect_inner {
         @build_assertion,
         [$($frame_name:expr,)*],
         $subject:expr,
-        $chain:expr,
-        $key:expr,
+        $builder:expr,
         $modifier:ident,
         $($rest:tt)*
     ) => {
@@ -307,18 +291,16 @@ macro_rules! __expect_inner {
             @build_assertion,
             [$($frame_name,)*],
             $subject,
-            $chain,
-            $key,
+            $builder,
             $modifier(),
             $($rest)*
         )
     };
 
     // Annotate the value being passed down the chain
-    (@annotate, $chain:expr, $key:expr) => {
+    (@annotate, $builder:expr) => {
         $crate::assertions::general::__annotate(
-            $chain,
-            $key,
+            $builder,
             |not_debug| $crate::annotated!(not_debug),
         )
     };

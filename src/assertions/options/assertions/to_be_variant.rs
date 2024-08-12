@@ -3,52 +3,17 @@ use crate::{
     AssertionOutput,
 };
 
-/// Asserts that the subject holds a value.
-///
-/// ```
-/// # use expecters::prelude::*;
-/// expect!(Some(1), to_be_some);
-/// ```
-///
-/// The assertion fails if the subject does not hold a value:
-///
-/// ```should_panic
-/// # use expecters::prelude::*;
-/// expect!(None::<i32>, to_be_some);
-/// ```
-#[inline]
-#[must_use]
-pub fn to_be_some() -> ToBeOptionVariantAssertion {
-    ToBeOptionVariantAssertion {
-        expected: Variant::Some,
-    }
-}
-
-/// Asserts that the subject does not hold a value.
-///
-/// ```
-/// # use expecters::prelude::*;
-/// expect!(None::<i32>, to_be_none);
-/// ```
-///
-/// The assertion fails if the subject holds a value:
-///
-/// ```should_panic
-/// # use expecters::prelude::*;
-/// expect!(Some(1), to_be_none);
-/// ```
-#[inline]
-#[must_use]
-pub fn to_be_none() -> ToBeOptionVariantAssertion {
-    ToBeOptionVariantAssertion {
-        expected: Variant::None,
-    }
-}
-
-/// Assertion for [`to_be_some()`] and [`to_be_none()`].
+/// Asserts that the subject is a specific [`Option`] variant.
 #[derive(Clone, Debug)]
 pub struct ToBeOptionVariantAssertion {
-    expected: Variant,
+    expected: OptionVariant,
+}
+
+impl ToBeOptionVariantAssertion {
+    #[inline]
+    pub(crate) fn new(expected: OptionVariant) -> Self {
+        Self { expected }
+    }
 }
 
 impl<O> Assertion<O> for ToBeOptionVariantAssertion
@@ -57,18 +22,17 @@ where
 {
     type Output = AssertionOutput;
 
-    fn execute(self, mut cx: AssertionContext, subject: O) -> Self::Output {
-        cx.annotate("expected", format_args!("{:?}", self.expected));
-
+    #[inline]
+    fn execute(self, cx: AssertionContext, subject: O) -> Self::Output {
         match self.expected {
-            Variant::Some => cx.pass_if(subject.some().is_some(), "received None"),
-            Variant::None => cx.pass_if(subject.some().is_none(), "received Some"),
+            OptionVariant::Some => cx.pass_if(subject.some().is_some(), "received None"),
+            OptionVariant::None => cx.pass_if(subject.some().is_none(), "received Some"),
         }
     }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-enum Variant {
+pub(crate) enum OptionVariant {
     Some,
     None,
 }

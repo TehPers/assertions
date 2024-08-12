@@ -1,36 +1,19 @@
 use crate::assertions::{
-    general::IntoInitializableOutput, key, results::Resultish, Assertion, AssertionContext,
-    AssertionContextBuilder, AssertionModifier, SubjectKey,
+    general::IntoInitializableOutput, results::Resultish, Assertion, AssertionContext,
+    AssertionContextBuilder, AssertionModifier,
 };
 
-/// Asserts that the target holds a success, then continues the assertion with
-/// the contained value.
-///
-/// ```
-/// # use expecters::prelude::*;
-/// let mut subject: Result<i32, &str> = Ok(1);
-/// expect!(subject, to_be_ok_and, to_equal(1));
-/// ```
-///
-/// The assertion fails if the result is [`Err`]:
-///
-/// ```should_panic
-/// # use expecters::prelude::*;
-/// let subject: Result<i32, &str> = Err("error");
-/// expect!(subject, to_be_ok_and, to_equal(1));
-/// ```
-#[inline]
-pub fn to_be_ok_and<R, M>(prev: M, _: SubjectKey<R>) -> (OkAndModifier<M>, SubjectKey<R::OutT>)
-where
-    R: Resultish,
-{
-    (OkAndModifier { prev }, key())
-}
-
-/// Modifier for [`to_be_ok_and()`].
+/// Maps the subject to its [`Ok`] value.
 #[derive(Clone, Debug)]
 pub struct OkAndModifier<M> {
     prev: M,
+}
+
+impl<M> OkAndModifier<M> {
+    #[inline]
+    pub(crate) fn new(prev: M) -> Self {
+        Self { prev }
+    }
 }
 
 impl<M, A> AssertionModifier<A> for OkAndModifier<M>
@@ -45,7 +28,7 @@ where
     }
 }
 
-/// Assertion for [`to_be_ok_and()`].
+/// Executes the inner assertion on the subject's [`Ok`] value.
 #[derive(Clone, Debug)]
 pub struct OkAndAssertion<A> {
     next: A,

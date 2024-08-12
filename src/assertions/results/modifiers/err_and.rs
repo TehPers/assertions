@@ -1,36 +1,19 @@
 use crate::assertions::{
-    general::IntoInitializableOutput, key, results::Resultish, Assertion, AssertionContext,
-    AssertionContextBuilder, AssertionModifier, SubjectKey,
+    general::IntoInitializableOutput, results::Resultish, Assertion, AssertionContext,
+    AssertionContextBuilder, AssertionModifier,
 };
 
-/// Asserts that the target holds an error, then continues the assertion with
-/// the contained value.
-///
-/// ```
-/// # use expecters::prelude::*;
-/// let result: Result<i32, &str> = Err("error");
-/// expect!(result, to_be_err_and, to_equal("error"));
-/// ```
-///
-/// The assertion fails if the result is [`Ok`]:
-///
-/// ```should_panic
-/// # use expecters::prelude::*;
-/// let result: Result<i32, &str> = Ok(1);
-/// expect!(result, to_be_err_and, to_equal("error"));
-/// ```
-#[inline]
-pub fn to_be_err_and<R, M>(prev: M, _: SubjectKey<R>) -> (ErrAndModifier<M>, SubjectKey<R::OutE>)
-where
-    R: Resultish,
-{
-    (ErrAndModifier { prev }, key())
-}
-
-/// Modifier for [`to_be_err_and()`].
+/// Maps the subject to its [`Err`] value.
 #[derive(Clone, Debug)]
 pub struct ErrAndModifier<M> {
     prev: M,
+}
+
+impl<M> ErrAndModifier<M> {
+    #[inline]
+    pub(crate) fn new(prev: M) -> Self {
+        Self { prev }
+    }
 }
 
 impl<M, A> AssertionModifier<A> for ErrAndModifier<M>
@@ -45,7 +28,7 @@ where
     }
 }
 
-/// Assertion for [`to_be_err_and()`].
+/// Executes the inner assertion on the subject's [`Err`] value.
 #[derive(Clone, Debug)]
 pub struct ErrAndAssertion<A> {
     next: A,

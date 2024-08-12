@@ -1,113 +1,20 @@
 use crate::assertions::{
     iterators::{MergeStrategy, MergeableOutput},
-    key, Assertion, AssertionContext, AssertionContextBuilder, AssertionModifier, SubjectKey,
+    Assertion, AssertionContext, AssertionContextBuilder, AssertionModifier,
 };
 
-/// Executes an assertion on every value within the subject, and succeeds if and
-/// only if none of the assertions fail.
-///
-/// ```
-/// # use expecters::prelude::*;
-/// expect!([1, 3, 5], all, to_be_less_than(10));
-/// expect!([] as [i32; 0], all, to_equal(1));
-/// ```
-///
-/// The assertion fails if any element does not satisfy the assertion:
-///
-/// ```should_panic
-/// # use expecters::prelude::*;
-/// expect!([1, 3, 5], all, to_equal(5));
-/// ```
-///
-/// Requires that the rest of the assertion is [`Clone`]. The subject of the
-/// assertion doesn't need to be cloneable, but the rest of the assertion does.
-/// For example, this works fine:
-///
-/// ```
-/// # use expecters::prelude::*;
-/// #[derive(PartialEq)]
-/// struct NotClone(i32);
-/// expect!([NotClone(0)], all, to_satisfy(|x| x == NotClone(0)));
-/// ```
-///
-/// This does not though since `to_equal` takes ownership of a non-cloneable
-/// value:
-///
-/// ```compile_fail
-/// # use expecters::prelude::*;
-/// #[derive(PartialEq)]
-/// struct NotClone(i32);
-/// expect!([NotClone(0)], all, to_equal(NonClone(0)));
-/// ```
-#[inline]
-pub fn all<T, M>(prev: M, _: SubjectKey<T>) -> (MergeModifier<M>, SubjectKey<T::Item>)
-where
-    T: IntoIterator,
-{
-    (
-        MergeModifier {
-            prev,
-            strategy: MergeStrategy::All,
-        },
-        key(),
-    )
-}
-
-/// Executes an assertion on every value within the subject, and succeeds if and
-/// only if an assertion succeeds.
-///
-/// ```
-/// # use expecters::prelude::*;
-/// expect!([1, 3, 5], any, to_equal(5));
-/// expect!([] as [i32; 0], not, any, to_equal(1));
-/// ```
-///
-/// The assertion fails if no element satisfies the assertion:
-///
-/// ```should_panic
-/// # use expecters::prelude::*;
-/// expect!([1, 3, 5], any, to_equal(4));
-/// ```
-///
-/// Requires that the rest of the assertion is [`Clone`]. The subject of the
-/// assertion doesn't need to be cloneable, but the rest of the assertion does.
-/// For example, this works fine:
-///
-/// ```
-/// # use expecters::prelude::*;
-/// #[derive(PartialEq)]
-/// struct NotClone(i32);
-/// expect!([NotClone(0)], any, to_satisfy(|x| x == NotClone(0)));
-/// ```
-///
-/// This does not though since `to_equal` takes ownership of a non-cloneable
-/// value:
-///
-/// ```compile_fail
-/// # use expecters::prelude::*;
-/// #[derive(PartialEq)]
-/// struct NotClone(i32);
-/// expect!([NotClone(0)], any, to_equal(NonClone(0)));
-/// ```
-#[inline]
-pub fn any<T, M>(prev: M, _: SubjectKey<T>) -> (MergeModifier<M>, SubjectKey<T::Item>)
-where
-    T: IntoIterator,
-{
-    (
-        MergeModifier {
-            prev,
-            strategy: MergeStrategy::Any,
-        },
-        key(),
-    )
-}
-
-/// Modifier for [`all()`] and [`any()`].
+/// Forks an assertion, executing it for each element of the subject.
 #[derive(Clone, Debug)]
 pub struct MergeModifier<M> {
     prev: M,
     strategy: MergeStrategy,
+}
+
+impl<M> MergeModifier<M> {
+    #[inline]
+    pub(crate) fn new(prev: M, strategy: MergeStrategy) -> Self {
+        Self { prev, strategy }
+    }
 }
 
 impl<M, A> AssertionModifier<A> for MergeModifier<M>
@@ -128,7 +35,7 @@ where
     }
 }
 
-/// Assertion for [`all()`] and [`any()`].
+/// Forks the inner assertion, executing it for each element of the subject.
 #[derive(Clone, Debug)]
 pub struct MergeAssertion<A> {
     next: A,

@@ -4,28 +4,17 @@ use crate::{
     AssertionOutput,
 };
 
-/// Asserts that the subject is equal to the given value.
-///
-/// ```
-/// # use expecters::prelude::*;
-/// expect!(1, to_equal(1));
-/// ```
-///
-/// The assertion fails if the subject is not equal to the given value:
-///
-/// ```should_panic
-/// # use expecters::prelude::*;
-/// expect!(1, to_equal(2));
-/// ```
-#[inline]
-pub fn to_equal<U>(expected: Annotated<U>) -> ToEqualAssertion<U> {
-    ToEqualAssertion { expected }
-}
-
-/// Assertion for [`to_equal`].
+/// Asserts that the subject is equal to an expected value.
 #[derive(Clone, Debug)]
 pub struct ToEqualAssertion<U> {
     expected: Annotated<U>,
+}
+
+impl<U> ToEqualAssertion<U> {
+    #[inline]
+    pub(crate) fn new(expected: Annotated<U>) -> Self {
+        Self { expected }
+    }
 }
 
 impl<T, U> Assertion<T> for ToEqualAssertion<U>

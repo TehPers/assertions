@@ -1,27 +1,18 @@
 use std::fmt::Display;
 
-use crate::assertions::{
-    key, Assertion, AssertionContext, AssertionContextBuilder, AssertionModifier, SubjectKey,
-};
+use crate::assertions::{Assertion, AssertionContext, AssertionContextBuilder, AssertionModifier};
 
-/// Converts a value to its [`Display`] representation.
-///
-/// ```
-/// # use expecters::prelude::*;
-/// expect!(1, as_display, to_equal("1"));
-/// ```
-#[inline]
-pub fn as_display<T, M>(prev: M, _: SubjectKey<T>) -> (AsDisplayModifier<M>, SubjectKey<String>)
-where
-    T: Display,
-{
-    (AsDisplayModifier { prev }, key())
-}
-
-/// Modifier for [`as_display()`].
+/// Extracts the [`Display`] representation of the subject.
 #[derive(Clone, Debug)]
 pub struct AsDisplayModifier<M> {
     prev: M,
+}
+
+impl<M> AsDisplayModifier<M> {
+    #[inline]
+    pub(crate) fn new(prev: M) -> Self {
+        Self { prev }
+    }
 }
 
 impl<M, A> AssertionModifier<A> for AsDisplayModifier<M>
@@ -36,7 +27,8 @@ where
     }
 }
 
-/// Assertion for [`as_display()`].
+/// Executes the inner assertion with the [`Display`] representation of the
+/// subject.
 #[derive(Clone, Debug)]
 pub struct AsDisplayAssertion<A> {
     next: A,

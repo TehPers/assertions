@@ -1,33 +1,19 @@
 use crate::assertions::{
-    general::InvertibleOutput, key, Assertion, AssertionContext, AssertionContextBuilder,
-    AssertionModifier, SubjectKey,
+    general::InvertibleOutput, Assertion, AssertionContext, AssertionContextBuilder,
+    AssertionModifier,
 };
 
-/// Inverts the result of an assertion.
-///
-/// If (and only if) the assertion is satisfied, then the result is treated as
-/// a failure.
-///
-/// ```
-/// # use expecters::prelude::*;
-/// expect!(1, not, to_equal(2));
-/// ```
-///
-/// This method panics if the assertion is satisfied:
-///
-/// ```should_panic
-/// # use expecters::prelude::*;
-/// expect!(1, not, to_equal(1));
-/// ```
-#[inline]
-pub fn not<T, M>(prev: M, _: SubjectKey<T>) -> (NotModifier<M>, SubjectKey<T>) {
-    (NotModifier { prev }, key())
-}
-
-/// Modifier for [`not()`].
+/// Inverts an assertion.
 #[derive(Clone, Debug)]
 pub struct NotModifier<M> {
     prev: M,
+}
+
+impl<M> NotModifier<M> {
+    #[inline]
+    pub(crate) fn new(prev: M) -> Self {
+        NotModifier { prev }
+    }
 }
 
 impl<M, A> AssertionModifier<A> for NotModifier<M>
@@ -42,7 +28,7 @@ where
     }
 }
 
-/// Assertion for [`not()`].
+/// Inverts an inner assertion.
 #[derive(Clone, Debug)]
 pub struct NotAssertion<A> {
     next: A,
@@ -67,11 +53,6 @@ mod tests {
     #[test]
     fn preserves_context() {
         let res = try_expect!("blah", not, not, to_contain_substr("world"));
-        expect!(
-            res,
-            to_be_err_and,
-            as_debug,
-            to_contain_substr(r#""world""#)
-        );
+        expect!(res, to_be_err_and, as_debug, to_contain_substr("\"world\""));
     }
 }

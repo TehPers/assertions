@@ -1,27 +1,18 @@
 use std::fmt::Debug;
 
-use crate::assertions::{
-    key, Assertion, AssertionContext, AssertionContextBuilder, AssertionModifier, SubjectKey,
-};
+use crate::assertions::{Assertion, AssertionContext, AssertionContextBuilder, AssertionModifier};
 
-/// Converts a value to its [`Debug`] representation.
-///
-/// ```
-/// # use expecters::prelude::*;
-/// expect!("hello", as_debug, to_equal(r#""hello""#));
-/// ```
-#[inline]
-pub fn as_debug<T, M>(prev: M, _: SubjectKey<T>) -> (AsDebugModifier<M>, SubjectKey<String>)
-where
-    T: Debug,
-{
-    (AsDebugModifier { prev }, key())
-}
-
-/// Modifier for [`as_debug()`].
+/// Extracts the [`Debug`] representation of the subject.
 #[derive(Clone, Debug)]
 pub struct AsDebugModifier<M> {
     prev: M,
+}
+
+impl<M> AsDebugModifier<M> {
+    #[inline]
+    pub(crate) fn new(prev: M) -> Self {
+        Self { prev }
+    }
 }
 
 impl<M, A> AssertionModifier<A> for AsDebugModifier<M>
@@ -36,7 +27,8 @@ where
     }
 }
 
-/// Assertion for [`as_debug()`].
+/// Executes the inner assertion with the [`Debug`] representation of the
+/// subject.
 #[derive(Clone, Debug)]
 pub struct AsDebugAssertion<A> {
     next: A,

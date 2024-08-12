@@ -2,18 +2,17 @@ use std::fmt::Debug;
 
 use crate::{
     assertions::{
-        key, Assertion, AssertionContext, AssertionContextBuilder, AssertionModifier, SubjectKey,
+        Assertion, AssertionBuilder, AssertionContext, AssertionContextBuilder, AssertionModifier,
     },
     metadata::{Annotated, AnnotatedKind},
 };
 
 #[doc(hidden)]
 pub fn __annotate<T, M>(
-    prev: M,
-    _: SubjectKey<T>,
+    builder: AssertionBuilder<T, M>,
     annotate: fn(T) -> Annotated<T>,
-) -> (AnnotateModifier<T, M>, SubjectKey<T>) {
-    (AnnotateModifier { prev, annotate }, key())
+) -> AssertionBuilder<T, AnnotateModifier<T, M>> {
+    AssertionBuilder::modify(builder, |prev| AnnotateModifier { prev, annotate })
 }
 
 /// Annotates and records input values, and updates the [`AssertionContext`]

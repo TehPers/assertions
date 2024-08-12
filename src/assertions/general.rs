@@ -9,9 +9,11 @@
 //! module.
 
 mod assertions;
+mod extensions;
 mod modifiers;
 mod outputs;
 
 pub use assertions::*;
+pub use extensions::*;
 pub use modifiers::*;
 pub use outputs::*;

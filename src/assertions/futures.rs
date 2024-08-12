@@ -16,8 +16,10 @@
 //! # }
 //! ```
 
+mod extensions;
 mod modifiers;
 mod outputs;
 
+pub use extensions::*;
 pub use modifiers::*;
 pub use outputs::*;

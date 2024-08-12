@@ -1,6 +1,11 @@
-use std::{fmt::Debug, marker::PhantomData};
+use std::{
+    fmt::{Debug, Formatter},
+    marker::PhantomData,
+};
 
-use super::{AssertionContext, AssertionContextBuilder};
+use crate::metadata::Annotated;
+
+use super::{general::Root, AssertionContext, AssertionContextBuilder};
 
 /// Evaluates a subject and determines whether it satisfies a condition.
 ///
@@ -40,40 +45,76 @@ pub trait AssertionModifier<A> {
     fn apply(self, cx: AssertionContextBuilder, next: A) -> Self::Output;
 }
 
-/// Indicates the type of subject being passed to the next modifier/assertion in
-/// the chain.
+/// Builds an assertion.
 ///
-/// This is necessary to help the compiler infer the type of the value being
-/// passed from a modifier to the next modifier/assertion.
-///
-/// To create an instance of it, use:
-///
-/// ```
-/// use expecters::assertions::key;
-/// let key = key::<i32>();
-/// # let _ = key;
-/// ```
-pub struct SubjectKey<T>(PhantomData<fn(T)>);
+/// To apply a modifier to this assertion, see [`Self::modify`].
+#[must_use]
+pub struct AssertionBuilder<T, M> {
+    modifier: M,
+    marker: PhantomData<fn(T)>,
+}
 
-impl<T> Clone for SubjectKey<T> {
+impl<T> AssertionBuilder<T, Root<T>> {
+    #[doc(hidden)]
+    pub fn __new(subject: Annotated<T>) -> Self {
+        AssertionBuilder {
+            modifier: Root::new(subject),
+            marker: PhantomData,
+        }
+    }
+}
+
+impl<T, M> AssertionBuilder<T, M> {
+    /// Applies a modifier to the assertion.
+    ///
+    /// This associated function does not take `self` to avoid appearing in
+    /// completions when writing out an expectation. The completions only appear
+    /// for functions that can be executed on the builder directly, for example
+    /// `builder.not()`. Because this function doesn't take `self`, it is
+    /// invalid to write `builder.modify(constructor)`, so it should not appear
+    /// in the suggested completions for most users.
+    #[inline]
+    pub fn modify<T2, M2>(
+        builder: Self,
+        constructor: impl FnOnce(M) -> M2,
+    ) -> AssertionBuilder<T2, M2> {
+        AssertionBuilder {
+            modifier: constructor(builder.modifier),
+            marker: PhantomData,
+        }
+    }
+
+    #[doc(hidden)]
+    pub fn __apply<A>(builder: Self, cx: AssertionContextBuilder, next: A) -> M::Output
+    where
+        M: AssertionModifier<A>,
+    {
+        builder.modifier.apply(cx, next)
+    }
+}
+
+impl<T, M> Clone for AssertionBuilder<T, M>
+where
+    M: Clone,
+{
     #[inline]
     fn clone(&self) -> Self {
-        *self
+        Self {
+            modifier: self.modifier.clone(),
+            marker: self.marker,
+        }
     }
 }
 
-impl<T> Copy for SubjectKey<T> {}
-
-impl<T> Debug for SubjectKey<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("SubjectKey").field(&self.0).finish()
+impl<T, M> Debug for AssertionBuilder<T, M>
+where
+    M: Debug,
+{
+    #[inline]
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        f.debug_struct("AssertionBuilder")
+            .field("modifier", &self.modifier)
+            .field("marker", &self.marker)
+            .finish()
     }
-}
-
-/// Creates a new key for a subject. Modifiers must return a key on creation to
-/// indicate the type of subject the next modifier/assertion is expected to
-/// receive.
-#[must_use]
-pub const fn key<T>() -> SubjectKey<T> {
-    SubjectKey(PhantomData)
 }

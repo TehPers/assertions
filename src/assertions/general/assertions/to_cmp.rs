@@ -6,100 +6,6 @@ use crate::{
     AssertionOutput,
 };
 
-/// Asserts that the target is less than the given value.
-///
-/// ```
-/// # use expecters::prelude::*;
-/// expect!(1, to_be_less_than(2));
-/// ```
-///
-/// This method panics if the target is not less than the given value:
-///
-/// ```should_panic
-/// # use expecters::prelude::*;
-/// expect!(2, to_be_less_than(1));
-/// ```
-#[inline]
-pub fn to_be_less_than<U>(boundary: Annotated<U>) -> ToCmpAssertion<U> {
-    ToCmpAssertion {
-        boundary,
-        ordering: Ordering::Less,
-        allow_eq: false,
-        cmp_message: "less than",
-    }
-}
-
-/// Asserts that the target is less than or equal to the given value.
-///
-/// ```
-/// # use expecters::prelude::*;
-/// expect!(1, to_be_less_than_or_equal_to(1));
-/// expect!(1, to_be_less_than_or_equal_to(2));
-/// ```
-///
-/// This method panics if the target is greater less the given value:
-///
-/// ```should_panic
-/// # use expecters::prelude::*;
-/// expect!(2, to_be_less_than_or_equal_to(1));
-/// ```
-#[inline]
-pub fn to_be_less_than_or_equal_to<U>(boundary: Annotated<U>) -> ToCmpAssertion<U> {
-    ToCmpAssertion {
-        boundary,
-        ordering: Ordering::Less,
-        allow_eq: true,
-        cmp_message: "less than or equal to",
-    }
-}
-
-/// Asserts that the target is greater than the given value.
-///
-/// ```
-/// # use expecters::prelude::*;
-/// expect!(2, to_be_greater_than(1));
-/// ```
-///
-/// This method panics if the target is not greater than the given value:
-///
-/// ```should_panic
-/// # use expecters::prelude::*;
-/// expect!(1, to_be_greater_than(2));
-/// ```
-#[inline]
-pub fn to_be_greater_than<U>(boundary: Annotated<U>) -> ToCmpAssertion<U> {
-    ToCmpAssertion {
-        boundary,
-        ordering: Ordering::Greater,
-        allow_eq: false,
-        cmp_message: "greater than",
-    }
-}
-
-/// Asserts that the target is greater than or equal to the given value.
-///
-/// ```
-/// # use expecters::prelude::*;
-/// expect!(1, to_be_greater_than_or_equal_to(1));
-/// expect!(1, to_be_greater_than_or_equal_to(0));
-/// ```
-///
-/// This method panics if the target is less than than the given value:
-///
-/// ```should_panic
-/// # use expecters::prelude::*;
-/// expect!(1, to_be_greater_than_or_equal_to(2));
-/// ```
-#[inline]
-pub fn to_be_greater_than_or_equal_to<U>(boundary: Annotated<U>) -> ToCmpAssertion<U> {
-    ToCmpAssertion {
-        boundary,
-        ordering: Ordering::Greater,
-        allow_eq: true,
-        cmp_message: "greater than or equal to",
-    }
-}
-
 /// A general-purpose assertion for comparing the ordering between two values.
 #[derive(Clone, Debug)]
 pub struct ToCmpAssertion<U> {
@@ -107,6 +13,23 @@ pub struct ToCmpAssertion<U> {
     ordering: Ordering,
     allow_eq: bool,
     cmp_message: &'static str,
+}
+
+impl<U> ToCmpAssertion<U> {
+    #[inline]
+    pub(crate) fn new(
+        boundary: Annotated<U>,
+        ordering: Ordering,
+        allow_eq: bool,
+        cmp_message: &'static str,
+    ) -> Self {
+        Self {
+            boundary,
+            ordering,
+            allow_eq,
+            cmp_message,
+        }
+    }
 }
 
 impl<T, U> Assertion<T> for ToCmpAssertion<U>
@@ -118,10 +41,14 @@ where
     fn execute(self, mut cx: AssertionContext, subject: T) -> Self::Output {
         cx.annotate("boundary", &self.boundary);
         cx.annotate(
-            "ordering",
-            format_args!("{:?}", subject.partial_cmp(self.boundary.inner())),
+            "actual ordering",
+            match subject.partial_cmp(self.boundary.inner()) {
+                Some(Ordering::Less) => "subject < boundary",
+                Some(Ordering::Equal) => "subject == boundary",
+                Some(Ordering::Greater) => "subject > boundary",
+                None => "none",
+            },
         );
-        cx.annotate("expected ordering", self.cmp_message);
 
         // Use a match here to call the specialized comparison functions in case
         // those functions were overridden for a type

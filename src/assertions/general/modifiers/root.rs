@@ -1,18 +1,19 @@
 use crate::{
-    assertions::{key, Assertion, AssertionContextBuilder, AssertionModifier, SubjectKey},
+    assertions::{Assertion, AssertionContextBuilder, AssertionModifier},
     metadata::Annotated,
 };
-
-#[doc(hidden)]
-#[inline]
-pub fn __root<T>(subject: Annotated<T>) -> (Root<T>, SubjectKey<T>) {
-    (Root { subject }, key())
-}
 
 /// The root of an assertion.
 #[derive(Clone, Debug)]
 pub struct Root<T> {
     subject: Annotated<T>,
+}
+
+impl<T> Root<T> {
+    #[inline]
+    pub(crate) fn new(subject: Annotated<T>) -> Self {
+        Self { subject }
+    }
 }
 
 impl<T, A> AssertionModifier<A> for Root<T>

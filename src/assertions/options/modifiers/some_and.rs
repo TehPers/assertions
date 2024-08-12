@@ -1,34 +1,19 @@
 use crate::assertions::{
-    general::IntoInitializableOutput, key, options::Optionish, Assertion, AssertionContext,
-    AssertionContextBuilder, AssertionModifier, SubjectKey,
+    general::IntoInitializableOutput, options::Optionish, Assertion, AssertionContext,
+    AssertionContextBuilder, AssertionModifier,
 };
 
-/// Asserts that the subject holds a value, then continues the assertion with
-/// the contained value.
-///
-/// ```
-/// # use expecters::prelude::*;
-/// expect!(Some(1), to_be_some_and, to_equal(1));
-/// ```
-///
-/// The assertion fails if the option is [`None`]:
-///
-/// ```should_panic
-/// # use expecters::prelude::*;
-/// expect!(None::<i32>, to_be_some_and, to_equal(2));
-/// ```
-#[inline]
-pub fn to_be_some_and<O, M>(prev: M, _: SubjectKey<O>) -> (SomeAndModifier<M>, SubjectKey<O::OutT>)
-where
-    O: Optionish,
-{
-    (SomeAndModifier { prev }, key())
-}
-
-/// Modifier for [`to_be_some_and()`].
+/// Maps the subject to its inner value.
 #[derive(Clone, Debug)]
 pub struct SomeAndModifier<M> {
     prev: M,
+}
+
+impl<M> SomeAndModifier<M> {
+    #[inline]
+    pub(crate) fn new(prev: M) -> Self {
+        Self { prev }
+    }
 }
 
 impl<M, A> AssertionModifier<A> for SomeAndModifier<M>
@@ -43,7 +28,7 @@ where
     }
 }
 
-/// Assertion for [`to_be_some_and()`].
+/// Executes the inner assertion on the subject's inner value.
 #[derive(Clone, Debug)]
 pub struct SomeAndAssertion<A> {
     next: A,

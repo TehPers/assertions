@@ -1,50 +1,23 @@
 use crate::{
     assertions::{
-        general::IntoInitializableOutput, key, Assertion, AssertionContext,
-        AssertionContextBuilder, AssertionModifier, SubjectKey,
+        general::IntoInitializableOutput, Assertion, AssertionContext, AssertionContextBuilder,
+        AssertionModifier,
     },
     metadata::Annotated,
 };
 
-/// Applies an assertion to a specific element in the target. If the element
-/// does not exist or does not satisfy the assertion, then the result is
-/// treated as a failure. The index is zero-based.
-///
-/// ```
-/// # use expecters::prelude::*;
-/// expect!([1, 2, 3], nth(1), to_equal(2));
-/// ```
-///
-/// The assertion fails if the element does not exist:
-///
-/// ```should_panic
-/// # use expecters::prelude::*;
-/// expect!([1, 2, 3], nth(3), to_equal(4));
-/// ```
-///
-/// It also fails if the element does not satisfy the assertion:
-///
-/// ```should_panic
-/// # use expecters::prelude::*;
-/// expect!([1, 2, 3], nth(1), to_equal(1));
-/// ```
-#[inline]
-pub fn nth<T, M>(
-    prev: M,
-    _: SubjectKey<T>,
-    index: Annotated<usize>,
-) -> (NthModifier<M>, SubjectKey<T::Item>)
-where
-    T: IntoIterator,
-{
-    (NthModifier { prev, index }, key())
-}
-
-/// Modifier for [`nth()`].
+/// Selects an element out of the subject.
 #[derive(Clone, Debug)]
 pub struct NthModifier<M> {
     prev: M,
     index: Annotated<usize>,
+}
+
+impl<M> NthModifier<M> {
+    #[inline]
+    pub(crate) fn new(prev: M, index: Annotated<usize>) -> Self {
+        Self { prev, index }
+    }
 }
 
 impl<M, A> AssertionModifier<A> for NthModifier<M>
@@ -65,7 +38,8 @@ where
     }
 }
 
-/// Assertion for [`nth()`].
+/// Selects an element out of the subject and executes the inner assertion on
+/// it.
 #[derive(Clone, Debug)]
 pub struct NthAssertion<A> {
     next: A,
