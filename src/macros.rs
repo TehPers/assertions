@@ -302,7 +302,7 @@ macro_rules! __expect_inner {
         $key:expr,
         $modifier:ident,
         $($rest:tt)*
-    ) => {{
+    ) => {
         $crate::__expect_inner!(
             @build_assertion,
             [$($frame_name,)*],
@@ -312,7 +312,7 @@ macro_rules! __expect_inner {
             $modifier(),
             $($rest)*
         )
-    }};
+    };
 
     // Annotate the value being passed down the chain
     (@annotate, $chain:expr, $key:expr) => {
