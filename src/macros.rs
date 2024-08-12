@@ -216,18 +216,6 @@ macro_rules! __expect_inner {
         )
     }};
 
-    // Build context frame names (from modifier/assertion names)
-    (
-        @build_ctx_frames,
-        $($frame_name:ident $(($($_:tt)*))?),*
-        $(,)?
-    ) => {{
-        const FRAMES: &'static [&'static str] = &[
-            $(::std::stringify!($frame_name),)*
-        ];
-        FRAMES
-    }};
-
     // Build assertion (chain modifiers and final assertion)
     (
         // Base case (with params)
