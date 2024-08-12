@@ -11,6 +11,7 @@ use crate::assertions::general::UnwrappableOutput;
 pin_project! {
     /// Unwraps an asynchronous output.
     #[derive(Clone, Debug)]
+    #[must_use]
     pub struct UnwrappedOutputFuture<F> {
         #[pin]
         inner: F,
@@ -46,6 +47,7 @@ where
 pin_project! {
     /// Tries to unwrap an asynchronous output.
     #[derive(Clone, Debug)]
+    #[must_use]
     pub struct TryUnwrappedOutputFuture<F> {
         #[pin]
         inner: F,

@@ -18,6 +18,7 @@ use crate::assertions::{
 pin_project! {
     /// Merges many asynchronous outputs.
     #[derive(Debug)]
+    #[must_use]
     pub struct MergedOutputsFuture<F>
     where
         F: Future,

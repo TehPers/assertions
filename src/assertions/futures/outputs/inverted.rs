@@ -11,6 +11,7 @@ use crate::assertions::{general::InvertibleOutput, AssertionContext};
 pin_project! {
     /// Inverts an asynchronous output.
     #[derive(Clone, Debug)]
+    #[must_use]
     pub struct InvertedOutputFuture<F> {
         #[pin]
         inner: F,

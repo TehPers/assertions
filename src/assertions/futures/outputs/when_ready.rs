@@ -13,6 +13,7 @@ pin_project! {
     ///
     /// Created by [`when_ready`](crate::prelude::when_ready).
     #[derive(Clone, Debug)]
+    #[must_use]
     pub struct WhenReadyFuture<T, A>
     where
         T: Future,

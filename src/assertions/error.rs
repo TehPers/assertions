@@ -73,14 +73,19 @@ impl AssertionOutput {
 }
 
 /// An error that can occur during an assertion.
+#[must_use]
 pub struct AssertionError {
-    cx: AssertionContext,
+    cx: Box<AssertionContext>,
     message: String,
 }
 
 impl AssertionError {
+    #[inline]
     pub(crate) fn new(cx: AssertionContext, message: String) -> Self {
-        Self { cx, message }
+        Self {
+            cx: Box::new(cx),
+            message,
+        }
     }
 }
 
@@ -90,10 +95,12 @@ mod styles {
 
     use owo_colors::{OwoColorize, Stream};
 
+    #[inline]
     pub fn dimmed(s: &impl Display) -> impl Display + '_ {
         s.if_supports_color(Stream::Stderr, |s| s.dimmed())
     }
 
+    #[inline]
     pub fn bright_red(s: &impl Display) -> impl Display + '_ {
         s.if_supports_color(Stream::Stderr, |s| s.bright_red())
     }
@@ -101,10 +108,12 @@ mod styles {
 
 #[cfg(not(feature = "colors"))]
 mod styles {
+    #[inline]
     pub fn dimmed<T>(s: &T) -> &T {
         s
     }
 
+    #[inline]
     pub fn bright_red<T>(s: &T) -> &T {
         s
     }

@@ -18,6 +18,7 @@ pin_project! {
     /// Created by both [`when_ready_before`](crate::prelude::when_ready_before)
     /// and [`when_ready_after`](crate::prelude::when_ready_after).
     #[derive(Clone, Debug)]
+    #[must_use]
     pub struct CompletionOrderFuture<Fut, T, A> {
         #[pin]
         subject: T,

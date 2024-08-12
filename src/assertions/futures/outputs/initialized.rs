@@ -14,6 +14,7 @@ use crate::assertions::{
 
 pin_project! {
     /// An asynchronous output that can be initialized on-demand.
+    #[must_use]
     pub struct InitializedOutputFuture<F>
     where
         F: Future,
