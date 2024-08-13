@@ -98,3 +98,9 @@ pub mod specialization;
 mod macros;
 
 pub use assertions::AssertionOutput;
+
+#[cfg(doctest)]
+#[doc = include_str!("../README.md")]
+mod readme_tests {
+    // Runs doc tests on the readme
+}
