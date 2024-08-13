@@ -1,89 +1,100 @@
-//! Build composable assertions with a functional API.
+//! Build complex, self-describing assertions by chaining together reusable
+//! methods. Supports both synchronous and asynchronous assertions.
+//!
+//! ```sh
+//! cargo add --dev expecters
+//! ```
+//!
+//! ## Example
 //!
 //! ```
 //! use expecters::prelude::*;
-//! expect!([1, 2, 3]).all().not().to_equal(0);
+//!
+#![cfg_attr(
+    feature = "futures",
+    doc = r#" # #[tokio::main(flavor = "current_thread")]"#,
+    doc = " # async fn main() {"
+)]
+#![cfg_attr(not(feature = "futures"), doc = " # fn main() {")]
+//! expect!(1, as_display, to_equal("1"));
+//! expect!(1..=5, count, to_equal(5));
+//! # #[cfg(feature = "futures")]
+//! expect!(
+//!     [get_cat_url(0), get_cat_url(5)],
+//!     all,
+//!     when_ready,
+//!     to_contain_substr(".png"),
+//! ).await;
+//! # }
+//!
+//! async fn get_cat_url(id: u32) -> String {
+//!     format!("cats/{id}.png")
+//! }
 //! ```
 //!
-//! This crate provides a set of combinators and assertions that can be used to
-//! build complex assertions in a functional manner. The combinators are
-//! designed to be chained together to form a pipeline that is applied to the
-//! target value.
+//! If your test fails, knowing why it failed is important. Unlike many other
+//! assertions libraries, failures don't generate long expectation strings.
+//! Instead, your assertion is broken down into its steps, and information is
+//! attached to those steps to help you see what went wrong:
 //!
-//! The following built-in combinators are supported:
-//!
-//! - [`not`](Assertable::not): Invert the result of the chained assertion.
-//! - [`map`](Assertable::map): Transform the target value before applying the
-//!   chained assertion.
-//! - [`all`](Assertable::all): Assert that all elements of an iterator satisfy
-//!   the chained assertion.
-//! - [`any`](Assertable::any): Assert that any element of an iterator satisfies
-//!   the chained assertion.
-//! - [`count`](Assertable::count): Assert that the number of elements in an
-//!   iterator satisfies the chained assertion.
-//! - [`nth`](Assertable::nth): Assert that a specific element in an iterator
-//!   satisfies the chained assertion.
-//! - [`to_be_some_and`](Assertable::to_be_some_and): Assert that the target
-//!   value is `Some` and that the inner value satisfies the chained assertion.
-//! - [`to_be_ok_and`](Assertable::to_be_ok_and): Assert that the target value
-//!   is `Ok` and that the inner value satisfies the chained assertion.
-//! - [`to_be_err_and`](Assertable::to_be_err_and): Assert that the target value
-//!   is `Err` and that the inner value satisfies the chained assertion.
-//! - [`when_called`](Assertable::when_called): Assert that the target function
-//!   returns a value that satisfies the chained assertion.
-//! - [`when_called_with`](Assertable::when_called_with): Assert that the target
-//!   function returns a value that satisfies the chained assertion when called
-//!   with the given arguments.
-//!
-//! These combinators can be chained together as needed. For example:
-//!
-//! ```
+//! ```should_panic
 //! # use expecters::prelude::*;
-//! expect!(i32::checked_add)
-//!     .when_called_with((1, 2))
-//!     .to_be_some_and()
-//!     .to_equal(3);
-//! expect!(i32::checked_add).when_called_with((i32::MAX, 1)).to_be_none();
+//! expect!([1, 2, 3], all, to_satisfy(|n| n % 2 == 1));
 //! ```
 //!
-//! In addition to these combinators, a set of built-in assertions are provided
-//! that can be used to form the final assertion. For a full list of assertions,
-//! see the [`Assertable`] trait.
+//! This produces an error like the following:
 //!
-//! If you need the error from the assertion, you can use the [`as_result`]
-//! method at the start of the chain to convert the assertion to a result:
+//! ```text
+//! assertion failed:
+//!   at: src\lib.rs:42:8 [your_lib::tests]
+//!   subject: [1, 2, 3]
 //!
+//! steps:
+//!   all:
+//!     received: [1, 2, 3]
+//!     index: 1
+//!
+//!   to_satisfy: did not satisfy predicate
+//!     received: 2
+//!     predicate: |n| n % 2 == 1
 //! ```
-//! # use expecters::prelude::*;
-//! let result = expect!(42).as_result().to_be_less_than(10);
-//! expect!(result).to_be_err();
-//! ```
 //!
-//! Note that this crate does not support any kind of mocking or test harness
-//! features. It is only intended to be used for writing assertions in tests.
-//! Other crates, such as [`mockall`] and [`test-case`], can be used in
-//! conjunction with this crate to enhance testing capabilities.
+//! See the [`expect!`] macro's documentation for usage information. For a full
+//! list of modifiers and assertions, look at the [`prelude`] module.
 //!
-//! [`as_result`]: ExpectationRoot::as_result
-//! [`mockall`]: https://crates.io/crates/mockall
-//! [`test-case`]: https://crates.io/crates/test-case
+//! ## Crate features
+//!
+//! Many of the assertions require certain crate features to be enabled. Default
+//! features are marked with an asterisk (*) and can be disabled with
+//! `default-features = false`:
+//!
+//! - `futures`*: Enables async assertions.
+//! - `regex`*: Enables assertions that use regular expressions. Uses
+//!   [regex](https://crates.io/crates/regex) to execute them.
+//! - `colors`*: Enables styled failure messages. Styled messages can always be
+//!   disabled by setting `NO_COLOR`.
+#![warn(
+    missing_debug_implementations,
+    missing_docs,
+    trivial_casts,
+    trivial_numeric_casts,
+    unused_extern_crates,
+    unused_import_braces,
+    unused_qualifications,
+    unused_results,
+    clippy::all,
+    clippy::pedantic,
+    clippy::style
+)]
+#![allow(clippy::missing_errors_doc, clippy::module_name_repetitions)]
+#![forbid(unsafe_code)]
 
-pub mod combinators;
-
-mod assertions;
-mod error;
-mod expect;
-
-pub use assertions::*;
-pub use error::*;
-pub use expect::*;
-
-/// Commonly used types and traits. Import this module to get everything you
-/// need to start writing expectations.
-pub mod prelude {
-    // TODO: don't accidentally re-export the expect module
-    pub use crate::{expect, path, Assertable};
-}
-
+pub mod assertions;
+pub mod metadata;
+pub mod prelude;
 #[doc(hidden)]
 pub mod specialization;
+
+mod macros;
+
+pub use assertions::AssertionOutput;
