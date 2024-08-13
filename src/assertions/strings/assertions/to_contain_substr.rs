@@ -8,12 +8,13 @@ use crate::{
 #[derive(Clone, Debug)]
 pub struct ToContainSubstr<P> {
     pattern: Annotated<P>,
+    location: ContainsLocation,
 }
 
 impl<P> ToContainSubstr<P> {
     #[inline]
-    pub(crate) fn new(pattern: Annotated<P>) -> Self {
-        Self { pattern }
+    pub(crate) fn new(pattern: Annotated<P>, location: ContainsLocation) -> Self {
+        Self { pattern, location }
     }
 }
 
@@ -27,6 +28,20 @@ where
     fn execute(self, mut cx: AssertionContext, subject: T) -> Self::Output {
         let pattern = self.pattern.inner().as_ref();
         cx.annotate("expected", format_args!("{pattern:?}"));
-        cx.pass_if(subject.as_ref().contains(pattern), "substring not found")
+
+        let subject = subject.as_ref();
+        let found = match self.location {
+            ContainsLocation::Anywhere => subject.contains(pattern),
+            ContainsLocation::Start => subject.starts_with(pattern),
+            ContainsLocation::End => subject.ends_with(pattern),
+        };
+        cx.pass_if(found, "substring not found")
     }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub(crate) enum ContainsLocation {
+    Anywhere,
+    Start,
+    End,
 }

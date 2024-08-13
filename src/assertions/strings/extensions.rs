@@ -2,13 +2,21 @@ use std::fmt::{Debug, Display};
 
 use crate::{assertions::AssertionBuilder, metadata::Annotated};
 
-use super::{AsDebugModifier, AsDisplayModifier, ToContainSubstr};
+use super::{AsDebugModifier, AsDisplayModifier, CharsModifier, ContainsLocation, ToContainSubstr};
 
 /// Assertions and modifiers for [`String`]s.
 pub trait StringAssertions<T, M>
 where
     T: AsRef<str>,
 {
+    /// Converts a string to its characters (collected into a [`Vec<char>`]).
+    ///
+    /// ```
+    /// # use expecters::prelude::*;
+    /// expect!("Hello, world!", chars, any, to_equal(','));
+    /// ```
+    fn chars(self) -> AssertionBuilder<Vec<char>, CharsModifier<M>>;
+
     /// Asserts that the subject contains the given substring.
     ///
     /// ```
@@ -29,7 +37,51 @@ where
     where
         P: AsRef<str>,
     {
-        ToContainSubstr::new(pattern)
+        ToContainSubstr::new(pattern, ContainsLocation::Anywhere)
+    }
+
+    /// Asserts that the subject starts with the given substring.
+    ///
+    /// ```
+    /// # use expecters::prelude::*;
+    /// expect!("Hello, world!", to_start_with("Hello"));
+    /// ```
+    ///
+    /// The assertion fails if the subject does not start with the substring:
+    ///
+    /// ```should_panic
+    /// # use expecters::prelude::*;
+    /// expect!("Hello, world!", to_start_with("world!"));
+    /// ```
+    #[inline]
+    #[must_use]
+    fn to_start_with<P>(&self, pattern: Annotated<P>) -> ToContainSubstr<P>
+    where
+        P: AsRef<str>,
+    {
+        ToContainSubstr::new(pattern, ContainsLocation::Start)
+    }
+
+    /// Asserts that the subject ends with the given substring.
+    ///
+    /// ```
+    /// # use expecters::prelude::*;
+    /// expect!("Hello, world!", to_end_with("world!"));
+    /// ```
+    ///
+    /// The assertion fails if the subject does not end with the substring:
+    ///
+    /// ```should_panic
+    /// # use expecters::prelude::*;
+    /// expect!("Hello, world!", to_end_with("Hello"));
+    /// ```
+    #[inline]
+    #[must_use]
+    fn to_end_with<P>(&self, pattern: Annotated<P>) -> ToContainSubstr<P>
+    where
+        P: AsRef<str>,
+    {
+        ToContainSubstr::new(pattern, ContainsLocation::End)
     }
 
     /// Asserts that the subject matches the given regular expression.
@@ -61,7 +113,15 @@ where
     }
 }
 
-impl<T, M> StringAssertions<T, M> for AssertionBuilder<T, M> where T: AsRef<str> {}
+impl<T, M> StringAssertions<T, M> for AssertionBuilder<T, M>
+where
+    T: AsRef<str>,
+{
+    #[inline]
+    fn chars(self) -> AssertionBuilder<Vec<char>, CharsModifier<M>> {
+        AssertionBuilder::modify(self, CharsModifier::new)
+    }
+}
 
 /// Assertions and modifiers for types with a [`Debug`] representation.
 pub trait DebugAssertions<T, M>
