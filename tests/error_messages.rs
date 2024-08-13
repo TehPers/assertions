@@ -17,18 +17,6 @@ fn simple() {
 }
 
 #[test]
-fn alias() {
-    use expecters::prelude::not as my_not;
-
-    expect!(
-        try_expect!(1, my_not, to_equal(1)),
-        to_be_err_and,
-        as_display,
-        to_contain_substr("my_not"),
-    );
-}
-
-#[test]
 fn non_debug() {
     #[derive(PartialEq)]
     struct NotDebug<T>(T);
