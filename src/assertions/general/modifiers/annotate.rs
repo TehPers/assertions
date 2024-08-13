@@ -50,7 +50,7 @@ where
 
 impl<T, M, A> AssertionModifier<A> for AnnotateModifier<T, M>
 where
-    M: AssertionModifier<AnnotateAssertion<A, T>>,
+    M: AssertionModifier<AnnotateAssertion<T, A>>,
 {
     type Output = M::Output;
 
@@ -68,12 +68,12 @@ where
 
 /// Assertion for [`AnnotateModifier`]. See the docs for the modifier for more
 /// information.
-pub struct AnnotateAssertion<A, T> {
+pub struct AnnotateAssertion<T, A> {
     next: A,
     annotate: fn(T) -> Annotated<T>,
 }
 
-impl<A, T> Clone for AnnotateAssertion<A, T>
+impl<T, A> Clone for AnnotateAssertion<T, A>
 where
     A: Clone,
 {
@@ -85,7 +85,7 @@ where
     }
 }
 
-impl<A, T> Debug for AnnotateAssertion<A, T>
+impl<T, A> Debug for AnnotateAssertion<T, A>
 where
     A: Debug,
 {
@@ -97,7 +97,7 @@ where
     }
 }
 
-impl<A, T> Assertion<T> for AnnotateAssertion<A, T>
+impl<T, A> Assertion<T> for AnnotateAssertion<T, A>
 where
     A: Assertion<T>,
 {
