@@ -39,6 +39,11 @@ mod sealed {
 
 /// Helper trait for mapping [`Option<T>`] and its references to its inner value
 /// and type.
+///
+/// This is implemented for:
+/// - `Option<T>`
+/// - `&Option<T>`
+/// - `&mut Option<T>`
 pub trait Optionish: sealed::Sealed {}
 
 impl<R> Optionish for R where R: sealed::Sealed {}

@@ -12,11 +12,15 @@ use super::general::InitializableOutput;
 ///
 /// Assertion contexts can be cloned to indicate a fork in an execution path.
 /// Cloning the context allows the context to be passed down several execution
-/// paths, like when using [`all`](crate::prelude::all) or
-/// [`any`](crate::prelude::any) to execute an assertion on several values.
+/// paths, like when using [`all`] or [`any`] to execute an assertion on several
+/// values.
+///
 /// Forked contexts do not affect each other, so adding an attribute to a forked
 /// context or passing it into another assertion will not affect any of the
 /// other contexts that were created.
+///
+/// [`all`]: crate::prelude::IteratorAssertions::all
+/// [`any`]: crate::prelude::IteratorAssertions::any
 #[derive(Clone, Debug)]
 pub struct AssertionContext {
     pub(crate) subject: String,

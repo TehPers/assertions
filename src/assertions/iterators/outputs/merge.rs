@@ -16,8 +16,8 @@ use crate::{assertions::AssertionContext, AssertionOutput};
 /// iterators. An empty iterator represents either a success (for `All`) or a
 /// failure (for `Any`) depending on your merge strategy.
 ///
-/// [`all`]: crate::prelude::all
-/// [`any`]: crate::prelude::any
+/// [`all`]: crate::prelude::IteratorAssertions::all
+/// [`any`]: crate::prelude::IteratorAssertions::any
 pub trait MergeableOutput {
     /// The type of the merged output.
     type Merged;

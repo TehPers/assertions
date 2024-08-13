@@ -4,29 +4,19 @@ use crate::{assertions::AssertionContext, AssertionOutput};
 /// [`AssertionContext`].
 ///
 /// Some modifiers need to directly initialize an instance of their output type.
-/// For example, fallible modifiers like
-/// [`to_be_some_and`](crate::prelude::to_be_some_and) can fail without
+/// For example, fallible modifiers like [`to_be_some_and`] can fail without
 /// continuing the rest of the assertion, and those modifiers need a way to
 /// construct the failure for their output type. Output types that implement
 /// this trait can be constructed directly, so those modifiers are able to fail
 /// the assertion early without continuing execution.
+///
+/// [`to_be_some_and`]: crate::prelude::OptionAssertions::to_be_some_and
 pub trait InitializableOutput {
-    // /// The initialized output type. This may differ from `Self` if it cannot be
-    // /// constructed directly, but can be wrapped by another type that also
-    // /// supports direct construction (which is often the case for asynchronous
-    // /// outputs).
-    // type Initialized;
-
     /// Constructs an output that represents a success.
     fn pass(cx: AssertionContext) -> Self;
 
     /// Constructs an output that represents a failure with a given message.
     fn fail(cx: AssertionContext, message: String) -> Self;
-
-    // /// Converts this output into an instance of the initialized output type.
-    // /// This is important to ensure that an existing instance of this output can
-    // /// be converted to the success/failure types this output can produce.
-    // fn into_initializable(self) -> Self::Initialized;
 }
 
 impl InitializableOutput for AssertionOutput {
@@ -42,9 +32,7 @@ impl InitializableOutput for AssertionOutput {
 }
 
 /// An output type that can be converted into an
-/// [initializable output type][initializable].
-///
-/// [initializable]: InitializableOutput
+/// [initializable output type](InitializableOutput).
 pub trait IntoInitializableOutput {
     /// The initialized output type.
     ///

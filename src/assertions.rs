@@ -10,14 +10,27 @@
 //! expect!([1, 2, 3], all, to_be_greater_than(0));
 //! ```
 //!
+//! ## Available assertions
+//!
+//! Many assertions are made available by importing the prelude. To see what
+//! assertions are exported by default, look at the [`prelude`](crate::prelude)
+//! module's exports. The assertions are defined by traits that are exported by
+//! that module.
+//!
+//! For example, general purpose assertions are found in [`GeneralAssertions`],
+//! while assertions on option values are in [`OptionAssertions`].
+//!
 //! ## Creating an assertion
 //!
 //! The signature for assertions is simple. An assertion function, like
-//! [`to_be_some`](crate::prelude::to_be_some), is a regular function that
-//! returns a value implementing the [`Assertion<T>`] trait. It acts as a
-//! constructor for that type. For example, calling `to_be_some()` returns an
-//! instance of the [`ToBeOptionVariantAssertion`] type configured to check if
-//! the input it receives is of the [`Some`] variant.
+//! [`to_be_some`], is a function added by a trait to the [`AssertionBuilder`]
+//! that returns a value implementing the [`Assertion<T>`] trait. It acts as a
+//! constructor for that type. For example, calling `builder.to_be_some()`
+//! returns an instance of the [`ToBeOptionVariantAssertion`] type configured to
+//! check if the input it receives is of a particular variant of [`Option`].
+//!
+//! Note that the same type is returned by [`to_be_none`], and these types can
+//! be reused if needed.
 //!
 //! To create your own assertion function, first create the type that represents
 //! the assertion, then create the function that produces the type. For example,
@@ -25,18 +38,13 @@
 //!
 //! ```
 //! use expecters::{
-//!     assertions::{Assertion, AssertionContext},
+//!     assertions::{Assertion, AssertionBuilder, AssertionContext},
 //!     metadata::Annotated,
 //!     prelude::*,
 //!     AssertionOutput,
 //! };
 //!
-//! // Input parameters are automatically annotated, so we need to wrap them
-//! // with `Annotated<T>`
-//! pub fn to_be_zero(annotation: Annotated<String>) -> ToBeZeroAssertion {
-//!     ToBeZeroAssertion(annotation)
-//! }
-//!
+//! // We need to create a struct for our assertion and define its behavior
 //! #[derive(Clone, Debug)]
 //! pub struct ToBeZeroAssertion(Annotated<String>);
 //!
@@ -47,12 +55,31 @@
 //!     type Output = AssertionOutput;
 //!
 //!     fn execute(self, mut cx: AssertionContext, value: i32) -> Self::Output {
-//!         cx.annotate("my annotation", "this appears in failure messages");
+//!         // You can annotate the context with additional information
+//!         cx.annotate("my note", "this appears in failure messages");
 //!         cx.annotate("input parameter", &self.0);
+//!
+//!         // Then execute your assertion
 //!         cx.pass_if(value == 0, "was not zero")
 //!     }
 //! }
 //!
+//! // Now we need to attach our assertion to the assertion builder. We attach
+//! // it through a trait implementation on the builder itself:
+//! trait MyAssertions {
+//!     // Input parameters are automatically annotated, so we need to wrap them
+//!     // with `Annotated<T>`
+//!     fn to_be_zero(&self, note: Annotated<String>) -> ToBeZeroAssertion {
+//!         ToBeZeroAssertion(note)
+//!     }
+//! }
+//!
+//! // By implementing only for `AssertionBuilder<i32, M>`, we constrain our
+//! // assertion to only be allowed on assertions against `i32` values. This is
+//! // consistent with our `Assertion<i32>` implementation above.
+//! impl<M> MyAssertions for AssertionBuilder<i32, M> {}
+//!
+//! // Now we can use the assertion:
 //! expect!(0, to_be_zero("hello, world!".to_string()));
 //! // You can also use modifiers with your assertion:
 //! expect!(1, not, to_be_zero("this assertion is negated".to_string()));
@@ -100,36 +127,23 @@
 //!   assertion at the end of the chain back down to the root.
 //!
 //! To use the modifier with the [`expect!`] macro, you should also define a
-//! function for the modifier. The function should take at minimum two required
-//! inputs (but it may specify additional inputs), and should return a pair
-//! containing the constructed modifier and a subject key.
+//! function for the modifier in your trait. The function should take the
+//! builder by value (`self`), and may define any number of additional inputs
+//! that can be used to configure the modifier. It should return the modified
+//! builder.
 //!
 //! ```
 //! use expecters::{
 //!     assertions::{
 //!         Assertion,
+//!         AssertionBuilder,
 //!         AssertionContext,
 //!         AssertionContextBuilder,
 //!         AssertionModifier,
-//!         SubjectKey,
-//!         key,
 //!     },
 //!     metadata::Annotated,
 //!     prelude::*,
 //! };
-//!
-//! // The first two parameters are required, but you may specify any number of
-//! // additional parameters to your modifier:
-//! pub fn divided_by<M>(
-//!     prev: M, // the modifier we're wrapping
-//!     _: SubjectKey<f32>, // the type we're expecting to receive in this step
-//!     divisor: Annotated<f32>, // our own custom parameter
-//! ) -> (
-//!     DividedByModifier<M>, // our constructed modifier type, wrapping M
-//!     SubjectKey<f32>, // the type we're passing to the next step
-//! ) {
-//!     (DividedByModifier(prev, divisor), key())
-//! }
 //!
 //! // This wraps the modifier chain (first pass, going from root -> assertion)
 //! #[derive(Clone, Debug)]
@@ -162,6 +176,40 @@
 //!     }
 //! }
 //!
+//! // Now we need to attach our modifier. We can reuse an existing trait if we
+//! // want, if the input types are compatible. Note that we now take `self`
+//! // instead of `&self` (unlike the `to_be_zero` assertion):
+//! trait MyAssertions<M> {
+//!     // We return an `AssertionBuilder<f32, ...>` here because we're passing
+//!     // a `f32` value to whatever assertion we receive. If we were to convert
+//!     // the input `f32` into a `String`, for example, then we'd instead want
+//!     // to return `AssertionBuilder<String, ...>` here to ensure that only
+//!     // string assertions can be applied to it.
+//!     fn divided_by(
+//!         self,
+//!         divisor: Annotated<f32>,
+//!     ) -> AssertionBuilder<f32, DividedByModifier<M>>;
+//! }
+//!
+//! impl<M> MyAssertions<M> for AssertionBuilder<f32, M> {
+//!     fn divided_by(
+//!         self,
+//!         divisor: Annotated<f32>,
+//!     ) -> AssertionBuilder<f32, DividedByModifier<M>> {
+//!         // We can't call `self.modify` because `modify` doesn't take `self`
+//!         // as its first parameter. This is to make sure you don't
+//!         // accidentally treat `modify` as an assertion when calling
+//!         // `expect!`. Instead, we do `AssertionBuilder::modify` and pass the
+//!         // builder as the first parameter to modify the assertion:
+//!         AssertionBuilder::modify(
+//!             self,
+//!             // This constructs our modifier:
+//!             move |prev| DividedByModifier(prev, divisor),
+//!         )
+//!     }
+//! }
+//!
+//! // Now we can use our modifier
 //! expect!(4.0, divided_by(2.0), to_be_less_than(2.1));
 //! ```
 //!
@@ -170,10 +218,14 @@
 //! and common usage of it is without parentheses, though parentheses are still
 //! allowed.
 //!
+//! [`GeneralAssertions`]: crate::prelude::GeneralAssertions
+//! [`OptionAssertions`]: crate::prelude::OptionAssertions
 //! [`ToBeOptionVariantAssertion`]: options::ToBeOptionVariantAssertion
 //! [`expect!`]: crate::expect!
-//! [`not`]: crate::prelude::not
-//! [`to_equal`]: crate::prelude::to_equal
+//! [`not`]: crate::prelude::GeneralAssertions::not
+//! [`to_be_none`]: crate::prelude::OptionAssertions::to_be_none
+//! [`to_be_some`]: crate::prelude::OptionAssertions::to_be_some
+//! [`to_equal`]: crate::prelude::GeneralAssertions::to_equal
 
 // pub mod functions;
 #[cfg(feature = "futures")]

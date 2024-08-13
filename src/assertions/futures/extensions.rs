@@ -53,15 +53,19 @@ where
     ///
     /// ```
     /// # use expecters::prelude::*;
-    /// use std::future::{pending, ready};
+    /// use std::{future::ready, time::Duration };
+    /// use tokio::time::sleep;
+    ///
     /// # #[tokio::main(flavor = "current_thread")]
     /// # async fn main() {
-    /// expect!(ready(1), when_ready_before(pending::<()>()), to_equal(1)).await;
+    /// let timeout = Duration::from_secs(5);
+    /// expect!(ready(1), when_ready_before(sleep(timeout)), to_equal(1)).await;
+    /// // Also passes if the futures tie:
     /// expect!(ready(1), when_ready_before(ready(())), to_equal(1)).await;
     /// # }
     /// ```
     ///
-    /// The assertion fails if the provided future completes first:
+    /// The assertion fails if the subject completes last:
     ///
     /// ```should_panic
     /// # use expecters::prelude::*;
@@ -89,18 +93,17 @@ where
     /// # use expecters::prelude::*;
     /// use std::{future::ready, time::Duration};
     /// use tokio::time::sleep;
+    ///
     /// # #[tokio::main(flavor = "current_thread")]
     /// # async fn main() {
-    /// let fut = async {
-    ///     sleep(Duration::from_secs(1)).await;
-    ///     1
-    /// };
-    /// expect!(fut, when_ready_after(ready(())), to_equal(1)).await;
+    /// let duration = Duration::from_secs(1);
+    /// expect!(sleep(duration), when_ready_after(ready(())), to_equal(())).await;
+    /// // Also passes if the futures tie:
     /// expect!(ready(1), when_ready_after(ready(())), to_equal(1)).await;
     /// # }
     /// ```
     ///
-    /// The assertion fails if the provided future completes first:
+    /// The assertion fails if the subject completes first:
     ///
     /// ```should_panic
     /// # use expecters::prelude::*;

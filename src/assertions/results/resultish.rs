@@ -67,6 +67,11 @@ mod sealed {
 
 /// Helper trait for mapping [`Result<T, E>`] and its references to its
 /// component values and types.
+///
+/// This is implemented for:
+/// - `Result<T, E>`
+/// - `&Result<T, E>`
+/// - `&mut Result<T, E>`
 pub trait Resultish: sealed::Sealed {}
 
 impl<R> Resultish for R where R: sealed::Sealed {}

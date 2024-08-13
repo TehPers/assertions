@@ -145,10 +145,10 @@
 /// [`Annotated<T>`]: crate::metadata::Annotated
 /// [`AnnotatedAssertion<A, T>`]: crate::assertions::AnnotatedAssertion
 /// [`Debug`]: std::fmt::Debug
-/// [`all`]: crate::prelude::all
-/// [`map`]: crate::prelude::map
-/// [`not`]: crate::prelude::not
-/// [`to_equal`]: crate::prelude::to_equal
+/// [`all`]: crate::prelude::IteratorAssertions::all
+/// [`map`]: crate::prelude::GeneralAssertions::map
+/// [`not`]: crate::prelude::GeneralAssertions::not
+/// [`to_equal`]: crate::prelude::GeneralAssertions::to_equal
 /// [stringified]: std::stringify
 #[macro_export]
 macro_rules! expect {

@@ -23,8 +23,8 @@ pub trait InvertibleOutput {
     /// and reaching the [`to_equal`] assertion, but the inversion would occur
     /// at [`not`].
     ///
-    /// [`not`]: crate::prelude::not
-    /// [`to_equal`]: crate::prelude::to_equal
+    /// [`not`]: crate::prelude::GeneralAssertions::not
+    /// [`to_equal`]: crate::prelude::GeneralAssertions::to_equal
     fn invert(self, cx: AssertionContext) -> Self::Inverted;
 }
 
