@@ -26,6 +26,86 @@ async fn get_cat_url(id: u32) -> String {
 }
 ```
 
+## Built-in assertions
+
+### General
+
+| Assertion                        | Description        |
+| -------------------------------- | ------------------ |
+| `to_equal`                       | x == y             |
+| `to_equal_approximately`         | \|x - y\| < d      |
+| `to_be_greater_than`             | x > y              |
+| `to_be_greater_than_or_equal_to` | x >= y             |
+| `to_be_less_than`                | x < y              |
+| `to_be_less_than_or_equal_to`    | x <= y             |
+| `to_be_one_of`                   | x in [y1, y2, ...] |
+| `to_satisfy`                     | f(x) -> true       |
+| `to_satisfy_with`                | f(x) -> Ok         |
+
+| Modifier | Description    |
+| -------- | -------------- |
+| `not`    | negates result |
+| `map`    | maps subject   |
+
+### Options
+
+| Assertion    | Description |
+| ------------ | ----------- |
+| `to_be_some` | x is Some   |
+| `to_be_none` | x is None   |
+
+| Modifier         | Description   |
+| ---------------- | ------------- |
+| `to_be_some_and` | extracts Some |
+
+### Results
+
+| Assertion   | Description |
+| ----------- | ----------- |
+| `to_be_ok`  | x is Ok     |
+| `to_be_err` | x is Err    |
+
+| Modifier        | Description  |
+| --------------- | ------------ |
+| `to_be_ok_and`  | extracts Ok  |
+| `to_be_err_and` | extracts Err |
+
+### Strings
+
+| Assertion           | Description       | Requires feature |
+| ------------------- | ----------------- | ---------------- |
+| `to_contain_substr` | x contains y      |                  |
+| `to_start_with`     | x starts with y   |                  |
+| `to_end_with`       | x ends with y     |                  |
+| `to_match_regex`    | x matches pattern | `regex`          |
+
+| Modifier     | Description                             |
+| ------------ | --------------------------------------- |
+| `chars`      | map subject to `char` sequence          |
+| `as_debug`   | map subject to `Debug` representation   |
+| `as_display` | map subject to `Display` representation |
+
+### Iterators
+
+| Assertion    | Description  |
+| ------------ | ------------ |
+| `to_contain` | x contains y |
+
+| Modifier | Description                                      |
+| -------- | ------------------------------------------------ |
+| `all`    | each item in subject satisfies assertion         |
+| `any`    | at least one item in subject satisfies assertion |
+| `count`  | counts items in subject                          |
+| `nth`    | gets nth item in subject                         |
+
+### Futures
+
+| Modifier            | Description                          | Requires feature |
+| ------------------- | ------------------------------------ | ---------------- |
+| `when_ready`        | gets output                          | `futures`        |
+| `when_ready_before` | gets output if it completes before y | `futures`        |
+| `when_ready_after`  | gets output if it completes after y  | `futures`        |
+
 ## License
 
 This repository is dual licensed under [MIT](./LICENSE-MIT) and
