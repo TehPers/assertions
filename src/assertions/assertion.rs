@@ -74,12 +74,9 @@ impl<T, M> AssertionBuilder<T, M> {
     /// invalid to write `builder.modify(constructor)`, so it should not appear
     /// in the suggested completions for most users.
     #[inline]
-    pub fn modify<T2, M2>(
-        builder: Self,
-        constructor: impl FnOnce(M) -> M2,
-    ) -> AssertionBuilder<T2, M2> {
+    pub fn modify<T2, M2>(builder: Self, wrap: impl FnOnce(M) -> M2) -> AssertionBuilder<T2, M2> {
         AssertionBuilder {
-            modifier: constructor(builder.modifier),
+            modifier: wrap(builder.modifier),
             marker: PhantomData,
         }
     }
