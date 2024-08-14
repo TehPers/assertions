@@ -6,8 +6,8 @@ use crate::{
 };
 
 use super::{
-    MapModifier, NotModifier, ToCmpAssertion, ToEqualAssertion, ToSatisfyAssertion,
-    ToSatisfyWithAssertion,
+    Float, MapModifier, NotModifier, ToBeOneOfAssertion, ToCmpAssertion, ToEqualApproxAssertion,
+    ToEqualAssertion, ToSatisfyAssertion, ToSatisfyWithAssertion,
 };
 
 /// General-purpose assertions and modifiers.
@@ -22,7 +22,7 @@ pub trait GeneralAssertions<T, M> {
     /// expect!(1, not, to_equal(2));
     /// ```
     ///
-    /// This method panics if the assertion is satisfied:
+    /// The assertion fails if the assertion is satisfied:
     ///
     /// ```should_panic
     /// # use expecters::prelude::*;
@@ -47,7 +47,7 @@ pub trait GeneralAssertions<T, M> {
     /// expect!("abcd".chars(), any, to_equal('b'));
     /// ```
     ///
-    /// This method panics if the mapped target does not satisfy the assertion:
+    /// The assertion fails if the mapped subject does not satisfy the assertion:
     ///
     /// ```should_panic
     /// # use expecters::prelude::*;
@@ -199,14 +199,39 @@ pub trait GeneralAssertions<T, M> {
         ToEqualAssertion::new(expected)
     }
 
-    /// Asserts that the target is less than the given value.
+    /// Asserts that the subject is within a specified range of another value.
+    ///
+    /// ```
+    /// # use expecters::prelude::*;
+    /// expect!(0.9, to_equal_approximately(1.0, 0.2));
+    /// ```
+    ///
+    /// The assertion fails if the subject is out of range:
+    ///
+    /// ```should_panic
+    /// # use expecters::prelude::*;
+    /// expect!(0.7, to_equal_approximately(1.0, 0.2));
+    /// ```
+    #[inline]
+    fn to_equal_approximately(
+        &self,
+        expected: Annotated<T>,
+        max_delta: Annotated<T>,
+    ) -> ToEqualApproxAssertion<T>
+    where
+        T: Float,
+    {
+        ToEqualApproxAssertion::new(expected, max_delta)
+    }
+
+    /// Asserts that the subject is less than the given value.
     ///
     /// ```
     /// # use expecters::prelude::*;
     /// expect!(1, to_be_less_than(2));
     /// ```
     ///
-    /// This method panics if the target is not less than the given value:
+    /// The assertion fails if the subject is not less than the given value:
     ///
     /// ```should_panic
     /// # use expecters::prelude::*;
@@ -220,7 +245,7 @@ pub trait GeneralAssertions<T, M> {
         ToCmpAssertion::new(boundary, Ordering::Less, false, "less than")
     }
 
-    /// Asserts that the target is less than or equal to the given value.
+    /// Asserts that the subject is less than or equal to the given value.
     ///
     /// ```
     /// # use expecters::prelude::*;
@@ -228,7 +253,7 @@ pub trait GeneralAssertions<T, M> {
     /// expect!(1, to_be_less_than_or_equal_to(2));
     /// ```
     ///
-    /// This method panics if the target is greater less the given value:
+    /// The assertion fails if the subject is greater less the given value:
     ///
     /// ```should_panic
     /// # use expecters::prelude::*;
@@ -242,14 +267,14 @@ pub trait GeneralAssertions<T, M> {
         ToCmpAssertion::new(boundary, Ordering::Less, true, "less than or equal to")
     }
 
-    /// Asserts that the target is greater than the given value.
+    /// Asserts that the subject is greater than the given value.
     ///
     /// ```
     /// # use expecters::prelude::*;
     /// expect!(2, to_be_greater_than(1));
     /// ```
     ///
-    /// This method panics if the target is not greater than the given value:
+    /// The assertion fails if the subject is not greater than the given value:
     ///
     /// ```should_panic
     /// # use expecters::prelude::*;
@@ -263,7 +288,7 @@ pub trait GeneralAssertions<T, M> {
         ToCmpAssertion::new(boundary, Ordering::Greater, false, "greater than")
     }
 
-    /// Asserts that the target is greater than or equal to the given value.
+    /// Asserts that the subject is greater than or equal to the given value.
     ///
     /// ```
     /// # use expecters::prelude::*;
@@ -271,7 +296,7 @@ pub trait GeneralAssertions<T, M> {
     /// expect!(1, to_be_greater_than_or_equal_to(0));
     /// ```
     ///
-    /// This method panics if the target is less than than the given value:
+    /// The assertion fails if the subject is less than than the given value:
     ///
     /// ```should_panic
     /// # use expecters::prelude::*;
@@ -288,6 +313,29 @@ pub trait GeneralAssertions<T, M> {
             true,
             "greater than or equal to",
         )
+    }
+
+    /// Asserts that the subject is equal to an item in the given sequence.
+    ///
+    /// ```
+    /// # use expecters::prelude::*;
+    /// expect!(1, to_be_one_of([1, 2, 3]));
+    /// ```
+    ///
+    /// The assertion fails if the subject is not in the sequence or if the
+    /// sequence is empty:
+    ///
+    /// ```should_panic
+    /// # use expecters::prelude::*;
+    /// expect!(1, to_be_one_of([2, 3, 4]));
+    /// ```
+    #[inline]
+    fn to_be_one_of<I>(&self, items: Annotated<I>) -> ToBeOneOfAssertion<I>
+    where
+        I: IntoIterator,
+        T: PartialEq<I::Item>,
+    {
+        ToBeOneOfAssertion::new(items)
     }
 }
 

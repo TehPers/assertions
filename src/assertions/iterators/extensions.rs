@@ -1,6 +1,6 @@
 use crate::{assertions::AssertionBuilder, metadata::Annotated};
 
-use super::{CountModifier, MergeModifier, MergeStrategy, NthModifier};
+use super::{CountModifier, MergeModifier, MergeStrategy, NthModifier, ToContainAssertion};
 
 /// Assertions and modifiers for [Iterator]s.
 pub trait IteratorAssertions<T, M>
@@ -119,6 +119,27 @@ where
     /// expect!([1, 2, 3], nth(1), to_equal(1));
     /// ```
     fn nth(self, index: Annotated<usize>) -> AssertionBuilder<T::Item, NthModifier<M>>;
+
+    /// Asserts that the subject contains an element.
+    ///
+    /// ```
+    /// # use expecters::prelude::*;
+    /// expect!([1, 2, 3], to_contain(3));
+    /// ```
+    ///
+    /// This assertion fails if the element is not found:
+    ///
+    /// ```should_panic
+    /// # use expecters::prelude::*;
+    /// expect!([1, 2, 3], to_contain(4));
+    /// ```
+    #[inline]
+    fn to_contain<U>(&self, item: Annotated<U>) -> ToContainAssertion<U>
+    where
+        T::Item: PartialEq<U>,
+    {
+        ToContainAssertion::new(item)
+    }
 }
 
 impl<T, M> IteratorAssertions<T, M> for AssertionBuilder<T, M>
