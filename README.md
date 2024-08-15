@@ -14,10 +14,10 @@ async fn test() {
     expect!(1..=5, count, to_equal(5));
 
     expect!(
-        [get_cat_url(0), get_cat_url(5), get_cat_url(42)],
+        [get_cat_url(0), get_cat_url(40), get_cat_url(42)],
         all,
         when_ready,
-        to_end_with(".png"),
+        to_end_with("0.png"),
     ).await;
 }
 
@@ -25,6 +25,29 @@ async fn get_cat_url(id: u32) -> String {
     format!("cats/{id}.png")
 }
 ```
+
+Error message:
+
+```text
+thread 'test' panicked at README.md:13:6:
+assertion failed:
+  at: README.md:8:5 [readme_example]
+  subject: [get_cat_url(0), get_cat_url(40), get_cat_url(42)]
+
+steps:
+  all:
+    received: ? (no debug representation)
+    index: 2
+
+  when_ready:
+    received: ? (no debug representation)
+
+  to_end_with: substring not found
+    received: "cats/42.png"
+    expected: "0.png"
+```
+
+Supports colored messages with the `colors` feature.
 
 ## Built-in assertions
 
