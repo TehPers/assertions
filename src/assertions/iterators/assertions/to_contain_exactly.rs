@@ -58,7 +58,7 @@ mod tests {
     #[test_case([1, 2, 3], [1, 2, 4]; "elements not equal")]
     #[test_case([1, 2], [1, 2, 3]; "too short")]
     #[test_case([1, 2, 3, 4], [1, 2, 3]; "too long")]
-    #[should_panic]
+    #[should_panic = "assertion failed"]
     fn failure_cases<A, B>(left: A, right: B)
     where
         A: IntoIterator<Item: PartialEq<B::Item>>,
