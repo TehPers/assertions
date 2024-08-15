@@ -136,6 +136,7 @@ where
     /// # use expecters::prelude::*;
     /// expect!([0xF0, 0xA4, 0xAD], as_utf8, to_contain_substr(""));
     /// ```
+    #[allow(clippy::wrong_self_convention)]
     fn as_utf8(self) -> AssertionBuilder<String, AsUtf8Modifier<M>>
     where
         T: IntoIterator<Item = u8>;
