@@ -5,11 +5,12 @@ Supports both synchronous and asynchronous assertions.
 
 ## Example
 
+<!-- EXAMPLE -->
 ```rust
 use expecters::prelude::*;
 
 #[tokio::test]
-async fn test() {    
+async fn test() {
     expect!(1, as_display, to_equal("1"));
     expect!(1..=5, count, to_equal(5));
 
@@ -18,13 +19,15 @@ async fn test() {
         all,
         when_ready,
         to_end_with("0.png"),
-    ).await;
+    )
+    .await;
 }
 
 async fn get_cat_url(id: u32) -> String {
     format!("cats/{id}.png")
 }
 ```
+<!-- /EXAMPLE -->
 
 Error message:
 

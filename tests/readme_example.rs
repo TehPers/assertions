@@ -1,7 +1,9 @@
+#![cfg(feature = "futures")]
+
 use expecters::prelude::*;
 
 #[tokio::test]
-#[ignore = "run this manually to see the output from the README"]
+#[ignore]
 async fn test() {
     expect!(1, as_display, to_equal("1"));
     expect!(1..=5, count, to_equal(5));
