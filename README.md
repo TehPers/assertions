@@ -102,9 +102,10 @@ async fn get_cat_url(id: u32) -> String {
 
 ### Readers
 
-| Modifier    | Description            |
-| ----------- | ---------------------- |
-| `when_read` | reads into byte buffer |
+| Modifier          | Description                           | Requires feature |
+| ----------------- | ------------------------------------- | ---------------- |
+| `when_read`       | reads into byte buffer                |                  |
+| `when_read_async` | asynchronously reads into byte buffer | `futures`        |
 
 ### Futures
 

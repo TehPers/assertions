@@ -227,7 +227,8 @@
 //! [`to_be_some`]: crate::prelude::OptionAssertions::to_be_some
 //! [`to_equal`]: crate::prelude::GeneralAssertions::to_equal
 
-// pub mod functions;
+#[cfg(feature = "futures")]
+pub mod async_read;
 #[cfg(feature = "futures")]
 pub mod futures;
 pub mod general;

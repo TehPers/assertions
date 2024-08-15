@@ -2,7 +2,7 @@ use std::io::Read;
 
 use crate::assertions::AssertionBuilder;
 
-use super::WhenReadAsBytesModifier;
+use super::WhenReadModifier;
 
 /// Modifiers for types that implement [`Read`].
 pub trait ReadExtensions<T, M>
@@ -31,7 +31,7 @@ where
     /// struct MyReader;
     ///
     /// impl Read for MyReader {
-    ///     fn read(&mut self, _: &mut [u8]) -> std::io::Result<usize> {
+    ///     fn read(&mut self, _buf: &mut [u8]) -> std::io::Result<usize> {
     ///         Err(Error::new(ErrorKind::Other, "always fail"))
     ///     }
     /// }
@@ -43,7 +43,7 @@ where
     ///     to_be_greater_than_or_equal_to(0),
     /// );
     /// ```
-    fn when_read(self) -> AssertionBuilder<Vec<u8>, WhenReadAsBytesModifier<M>>;
+    fn when_read(self) -> AssertionBuilder<Vec<u8>, WhenReadModifier<M>>;
 }
 
 impl<T, M> ReadExtensions<T, M> for AssertionBuilder<T, M>
@@ -51,7 +51,7 @@ where
     T: Read,
 {
     #[inline]
-    fn when_read(self) -> AssertionBuilder<Vec<u8>, WhenReadAsBytesModifier<M>> {
-        AssertionBuilder::modify(self, WhenReadAsBytesModifier::new)
+    fn when_read(self) -> AssertionBuilder<Vec<u8>, WhenReadModifier<M>> {
+        AssertionBuilder::modify(self, WhenReadModifier::new)
     }
 }

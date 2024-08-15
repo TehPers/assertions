@@ -24,4 +24,4 @@ pub use crate::{
 };
 
 #[cfg(feature = "futures")]
-pub use crate::assertions::futures::FutureAssertions;
+pub use crate::assertions::{async_read::AsyncReadAssertions, futures::FutureAssertions};
