@@ -16,6 +16,7 @@ pub use crate::{
         general::GeneralAssertions,
         iterators::IteratorAssertions,
         options::OptionAssertions,
+        read::ReadExtensions,
         results::ResultAssertions,
         strings::{DebugAssertions, DisplayAssertions, StringAssertions},
     },

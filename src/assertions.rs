@@ -233,6 +233,7 @@ pub mod futures;
 pub mod general;
 pub mod iterators;
 pub mod options;
+pub mod read;
 pub mod results;
 pub mod strings;
 

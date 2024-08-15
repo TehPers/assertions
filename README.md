@@ -100,6 +100,12 @@ async fn get_cat_url(id: u32) -> String {
 | `nth`     | gets nth item                         |
 | `as_utf8` | parses as utf8                        |
 
+### Readers
+
+| Modifier    | Description            |
+| ----------- | ---------------------- |
+| `when_read` | reads into byte buffer |
+
 ### Futures
 
 | Modifier            | Description                          | Requires feature |
