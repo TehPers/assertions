@@ -87,16 +87,18 @@ async fn get_cat_url(id: u32) -> String {
 
 ### Iterators
 
-| Assertion    | Description  |
-| ------------ | ------------ |
-| `to_contain` | x contains y |
+| Assertion            | Description                  |
+| -------------------- | ---------------------------- |
+| `to_contain`         | x contains y                 |
+| `to_contain_exactly` | x is sequentially equal to y |
 
-| Modifier | Description                                      |
-| -------- | ------------------------------------------------ |
-| `all`    | each item in subject satisfies assertion         |
-| `any`    | at least one item in subject satisfies assertion |
-| `count`  | counts items in subject                          |
-| `nth`    | gets nth item in subject                         |
+| Modifier  | Description                           |
+| --------- | ------------------------------------- |
+| `all`     | each item satisfies assertion         |
+| `any`     | at least one item satisfies assertion |
+| `count`   | counts items                          |
+| `nth`     | gets nth item                         |
+| `as_utf8` | parses as utf8                        |
 
 ### Futures
 

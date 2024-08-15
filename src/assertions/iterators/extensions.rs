@@ -1,6 +1,9 @@
 use crate::{assertions::AssertionBuilder, metadata::Annotated};
 
-use super::{CountModifier, MergeModifier, MergeStrategy, NthModifier, ToContainAssertion};
+use super::{
+    AsUtf8Modifier, CountModifier, MergeModifier, MergeStrategy, NthModifier, ToContainAssertion,
+    ToContainExactlyAssertion,
+};
 
 /// Assertions and modifiers for [Iterator]s.
 pub trait IteratorAssertions<T, M>
@@ -120,6 +123,23 @@ where
     /// ```
     fn nth(self, index: Annotated<usize>) -> AssertionBuilder<T::Item, NthModifier<M>>;
 
+    /// Reads the subject as a UTF-8 encoded string.
+    ///
+    /// ```
+    /// # use expecters::prelude::*;
+    /// expect!("Hello!".bytes(), as_utf8, to_equal("Hello!"));
+    /// ```
+    ///
+    /// The assertion fails if the subject contains invalid UTF-8 sequences:
+    ///
+    /// ```should_panic
+    /// # use expecters::prelude::*;
+    /// expect!([0xF0, 0xA4, 0xAD], as_utf8, to_contain_substr(""));
+    /// ```
+    fn as_utf8(self) -> AssertionBuilder<String, AsUtf8Modifier<M>>
+    where
+        T: IntoIterator<Item = u8>;
+
     /// Asserts that the subject contains an element.
     ///
     /// ```
@@ -134,11 +154,34 @@ where
     /// expect!([1, 2, 3], to_contain(4));
     /// ```
     #[inline]
-    fn to_contain<U>(&self, item: Annotated<U>) -> ToContainAssertion<U>
+    fn to_contain<U>(&self, expected: Annotated<U>) -> ToContainAssertion<U>
     where
         T::Item: PartialEq<U>,
     {
-        ToContainAssertion::new(item)
+        ToContainAssertion::new(expected)
+    }
+
+    /// Asserts that the subject is equal to the given sequence.
+    ///
+    /// ```
+    /// # use expecters::prelude::*;
+    /// expect!([1, 2, 3], to_contain_exactly([1, 2, 3]));
+    /// ```
+    ///
+    /// This assertion fails if the sequences are different lengths, or if they
+    /// contain elements that are not equal at any index:
+    ///
+    /// ```should_panic
+    /// # use expecters::prelude::*;
+    /// expect!([1, 2, 3], to_contain_exactly([3, 2, 1]));
+    /// ```
+    #[inline]
+    fn to_contain_exactly<I>(&self, expected: Annotated<I>) -> ToContainExactlyAssertion<I>
+    where
+        I: IntoIterator,
+        T::Item: PartialEq<I::Item>,
+    {
+        ToContainExactlyAssertion::new(expected)
     }
 }
 
@@ -164,5 +207,13 @@ where
     #[inline]
     fn nth(self, index: Annotated<usize>) -> AssertionBuilder<T::Item, NthModifier<M>> {
         AssertionBuilder::modify(self, move |prev| NthModifier::new(prev, index))
+    }
+
+    #[inline]
+    fn as_utf8(self) -> AssertionBuilder<String, AsUtf8Modifier<M>>
+    where
+        T: IntoIterator<Item = u8>,
+    {
+        AssertionBuilder::modify(self, AsUtf8Modifier::new)
     }
 }
