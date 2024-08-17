@@ -149,6 +149,21 @@ impl AssertionContext {
         O::fail(self, message.to_string())
     }
 
+    /// Gets the source location for the assertion. This is the file, line,
+    /// column, and module name where the [`expect!`] macro was called.
+    ///
+    /// This will be included automatically in any failure messages, but can be
+    /// useful for uniquely identifying an assertion if needed (within a single
+    /// test run). If the source code changes though, then it's possible for
+    /// this value to change as well. For example, an extra newline added before
+    /// the call to [`expect!`] would change where this value points to.
+    ///
+    /// [`expect!`]: crate::expect!
+    #[inline]
+    pub fn source_location(&self) -> SourceLoc {
+        self.source_loc
+    }
+
     /// Recovers missing frames from another context.
     ///
     /// The recovered frames are used to provide additional information on what
