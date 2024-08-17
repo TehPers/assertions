@@ -82,7 +82,9 @@ pub trait GeneralAssertions<T, M> {
     /// ```
     ///
     /// [`expect!`]: crate::expect!
-    fn map<U, F>(self, f: Annotated<F>) -> AssertionBuilder<U, MapModifier<M, F>>;
+    fn map<U, F>(self, f: Annotated<F>) -> AssertionBuilder<U, MapModifier<M, F>>
+    where
+        F: FnOnce(T) -> U;
 
     /// Asserts that the subject matches the given predicate.
     ///
@@ -346,7 +348,10 @@ impl<T, M> GeneralAssertions<T, M> for AssertionBuilder<T, M> {
     }
 
     #[inline]
-    fn map<U, F>(self, f: Annotated<F>) -> AssertionBuilder<U, MapModifier<M, F>> {
+    fn map<U, F>(self, f: Annotated<F>) -> AssertionBuilder<U, MapModifier<M, F>>
+    where
+        F: FnOnce(T) -> U,
+    {
         AssertionBuilder::modify(self, move |prev| MapModifier::new(prev, f))
     }
 }
