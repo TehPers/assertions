@@ -14,12 +14,14 @@ rust-version = "1.80.1"
 publish = false # TODO: remove this when ready to publish
 
 [features]
-default = ["colors", "futures", "regex"]
+default = ["colors", "diff", "futures", "regex"]
 colors = ["dep:owo-colors"]
 futures = ["dep:futures", "dep:pin-project-lite"]
 regex = ["dep:regex"]
+diff = ["dep:diff"]
 
 [dependencies]
+diff = { version = "0.1.13", optional = true }
 futures = { version = "0.3.30", optional = true, default-features = false, features = [
     "std",
     "async-await",

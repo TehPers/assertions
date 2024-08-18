@@ -1,4 +1,6 @@
-use crate::metadata::{Annotated, AnnotatedKind, SourceLoc};
+use std::borrow::Cow;
+
+use crate::metadata::SourceLoc;
 
 use super::general::InitializableOutput;
 
@@ -39,7 +41,7 @@ impl AssertionContext {
         frames: &'static [&'static str],
     ) -> AssertionContextBuilder {
         AssertionContextBuilder {
-            innerner: Self {
+            inner: Self {
                 subject,
                 source_loc,
                 visited: vec![],
@@ -83,27 +85,21 @@ impl AssertionContext {
             .push((key, value.to_string()));
     }
 
-    /// Adds an annotation to this frame if the provided annotated value has a
-    /// [`Debug`] representation.
+    /// Adds a page with additional details to this frame. This page appears in
+    /// failure messages.
     ///
-    /// Note that function parameters to modifiers and assertions *almost
-    /// always* have a meaningful string representation. Those values should
-    /// generally be recorded using [`annotate()`](Self::annotate()) instead.
+    /// Pages can provide detailed information about a particular failure. They
+    /// are intended to be used where a short message is insufficient, and more
+    /// control over the format of the output is desired.
     ///
-    /// This method exists in case a value's stringified representation is not
-    /// expected to be meaningful, and it is unknown whether that value
-    /// implements [`Debug`]. For example, a value being passed from one
-    /// modifier to the next is temporarily stored in a variable, which is then
-    /// annotated. The name of the variable is not meaningful, so the annotated
-    /// value only has a meaningful string representation if the value
-    /// implements [`Debug`].
-    ///
-    /// [`Debug`]: std::fmt::Debug
-    #[inline]
-    pub fn try_annotate<T>(&mut self, key: &'static str, value: &Annotated<T>) {
-        if value.kind() == AnnotatedKind::Debug {
-            self.annotate(key, value.as_str());
-        }
+    /// For example, a page can provide a diff between an expected value and the
+    /// received subject.
+    pub fn add_page(&mut self, title: impl Into<Cow<'static, str>>, page: impl ToString) {
+        self.visited
+            .last_mut()
+            .expect("no visited frames (this is a bug)")
+            .pages
+            .push((title.into(), page.to_string()))
     }
 
     /// Creates a new success value.
@@ -188,6 +184,7 @@ impl AssertionContext {
         self.visited.push(ContextFrame {
             assertion_name: next,
             annotations: vec![],
+            pages: vec![],
         });
         self.remaining = remaining;
 
@@ -205,11 +202,12 @@ impl AssertionContext {
 /// context is built and passed back down through the constructed assertions.
 #[derive(Clone, Debug)]
 pub struct AssertionContextBuilder {
-    pub(crate) innerner: AssertionContext,
+    pub(crate) inner: AssertionContext,
 }
 
 #[derive(Clone, Debug)]
 pub(crate) struct ContextFrame {
     pub assertion_name: &'static str,
     pub annotations: Vec<(&'static str, String)>,
+    pub pages: Vec<(Cow<'static, str>, String)>,
 }

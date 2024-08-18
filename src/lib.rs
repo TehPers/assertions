@@ -95,7 +95,9 @@ pub mod prelude;
 #[doc(hidden)]
 pub mod specialization;
 
+mod diff;
 mod macros;
+mod styles;
 
 pub use assertions::AssertionOutput;
 

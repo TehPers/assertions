@@ -54,7 +54,7 @@ impl UnwrappableOutput for AssertionOutput {
     #[track_caller]
     fn unwrap(self) -> Self::Unwrapped {
         if let Err(e) = self.into_result() {
-            panic!("{e:?}")
+            panic!("{e}")
         }
     }
 

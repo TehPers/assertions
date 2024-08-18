@@ -1,5 +1,7 @@
 use std::fmt::{Debug, Display, Formatter};
 
+use crate::specialization::__SpecializeWrapper;
+
 #[macro_export]
 #[doc(hidden)]
 macro_rules! annotated {
@@ -9,10 +11,18 @@ macro_rules! annotated {
 
         // $value needs to be used as a value before it's stringified to get
         // proper completions from tools like rust-analyzer
-        let wrapper = $crate::specialization::__SpecializeWrapper($value);
-        (&wrapper)
-            .__annotated_kind()
-            .annotate(wrapper.0, ::std::stringify!($value))
+        let mut annotated = $crate::metadata::Annotated::__new($value, ::std::stringify!($value));
+        let wrapper = annotated.__specialize();
+        wrapper
+            .__for_trait::<dyn ::std::fmt::Debug>()
+            .__kind()
+            .__apply(&mut annotated);
+        wrapper
+            .__for_trait::<dyn ::std::fmt::Display>()
+            .__kind()
+            .__apply(&mut annotated);
+
+        annotated
     }};
 }
 
@@ -46,20 +56,27 @@ macro_rules! annotated {
 #[derive(Clone, Debug)]
 pub struct Annotated<T> {
     value: T,
-    string_repr: Option<String>,
     stringified: &'static str,
-    kind: AnnotatedKind,
+    as_debug: Option<fn(&T) -> &dyn Debug>,
+    as_display: Option<fn(&T) -> &dyn Display>,
 }
 
 impl<T> Annotated<T> {
     #[inline]
-    pub(crate) fn from_stringified(value: T, stringified: &'static str) -> Self {
+    #[doc(hidden)]
+    pub fn __new(value: T, stringified: &'static str) -> Self {
         Self {
-            string_repr: None,
             stringified,
             value,
-            kind: AnnotatedKind::Stringify,
+            as_debug: None,
+            as_display: None,
         }
+    }
+
+    #[inline]
+    #[doc(hidden)]
+    pub fn __specialize(&self) -> __SpecializeWrapper<T> {
+        __SpecializeWrapper::new()
     }
 
     /// Gets a reference to the inner value.
@@ -82,20 +99,31 @@ impl<T> Annotated<T> {
 
     /// Gets the stringified input's source code.
     #[inline]
-    pub fn stringified(&self) -> &'static str {
+    pub fn as_stringified(&self) -> &'static str {
         self.stringified
     }
 
-    /// Gets the source of the string representation of this value.
+    /// Gets a reference to the inner value as a `dyn Debug`.
     #[inline]
-    pub fn kind(&self) -> AnnotatedKind {
-        self.kind
+    pub fn as_debug(&self) -> Option<&dyn Debug> {
+        self.as_debug.map(|f| f(&self.value))
     }
 
-    /// Gets the string representation of this value.
+    /// Gets a reference to the inner value as a `dyn Display`.
     #[inline]
-    pub fn as_str(&self) -> &str {
-        self.string_repr.as_deref().unwrap_or(self.stringified)
+    pub fn as_display(&self) -> Option<&dyn Display> {
+        self.as_display.map(|f| f(&self.value))
+    }
+
+    /// Gets whether this value has a representation other than the stringified
+    /// source code representation.
+    ///
+    /// The stringified source code is not always useful (since it can be an
+    /// intermediate variable name, for example), so sometimes it's helpful to
+    /// know if a known useful representation of this value exists.
+    #[inline]
+    pub fn has_non_stringified_repr(&self) -> bool {
+        self.as_debug.is_some() || self.as_display.is_some()
     }
 }
 
@@ -104,31 +132,32 @@ where
     T: Debug,
 {
     #[inline]
-    pub(crate) fn from_debug(value: T, stringified: &'static str) -> Self {
-        Self {
-            string_repr: Some(format!("{value:?}")),
-            stringified,
-            value,
-            kind: AnnotatedKind::Debug,
-        }
+    pub(crate) fn mark_debug(&mut self) {
+        self.as_debug = Some(|val| val)
+    }
+}
+
+impl<T> Annotated<T>
+where
+    T: Display,
+{
+    #[inline]
+    pub(crate) fn mark_display(&mut self) {
+        self.as_display = Some(|val| val)
     }
 }
 
 impl<T> Display for Annotated<T> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        Display::fmt(self.as_str(), f)
+        // We skip the display representation since we don't want to show it
+        // most of the time. Usually the debug representation is more concise
+        // and useful in debug output.
+        if let Some(debug) = self.as_debug() {
+            debug.fmt(f)
+        } else {
+            Display::fmt(self.as_stringified(), f)
+        }
     }
-}
-
-/// The source of the string representation for an [`Annotated`] value.
-#[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
-#[non_exhaustive]
-pub enum AnnotatedKind {
-    /// The string representation is the [stringified](stringify) source code.
-    Stringify,
-
-    /// The string representation is the [`Debug`] representation of the value.
-    Debug,
 }
 
 #[cfg(test)]
@@ -137,24 +166,26 @@ mod tests {
 
     use crate::metadata::Annotated;
 
-    use super::AnnotatedKind;
-
     struct UseStringify<T>(T);
 
-    #[test_case(annotated!(1), AnnotatedKind::Debug, "1", "1"; "debug simple")]
-    #[test_case(annotated!(1 + 3), AnnotatedKind::Debug, "1 + 3", "4"; "debug addition")]
-    #[test_case(annotated!("test"), AnnotatedKind::Debug, "\"test\"", "\"test\""; "debug string")]
-    #[test_case(annotated!(UseStringify(1)), AnnotatedKind::Stringify, "UseStringify(1)", "UseStringify(1)"; "stringify simple")]
-    #[test_case(annotated!(UseStringify(1 + 3)), AnnotatedKind::Stringify, "UseStringify(1 + 3)", "UseStringify(1 + 3)"; "stringify addition")]
-    #[allow(clippy::needless_pass_by_value)]
-    fn annotated_macro<T>(
-        annotated: Annotated<T>,
-        kind: AnnotatedKind,
-        stringified: &str,
-        as_str: &str,
-    ) {
-        assert_eq!(annotated.kind(), kind);
-        assert_eq!(annotated.stringified(), stringified);
-        assert_eq!(annotated.as_str(), as_str);
+    #[derive(Debug)]
+    struct UseDebug<T>(T);
+
+    #[test_case(annotated!(1) => true; "simple")]
+    #[test_case(annotated!(1 + 3) => true; "addition")]
+    #[test_case(annotated!("hi") => true; "string")]
+    #[test_case(annotated!(UseDebug(1)) => true; "debug only")]
+    #[test_case(annotated!(UseStringify(1)) => false; "stringify only")]
+    fn has_debug<T>(annotated: Annotated<T>) -> bool {
+        annotated.as_debug().is_some()
+    }
+
+    #[test_case(annotated!(1) => true; "simple")]
+    #[test_case(annotated!(1 + 3) => true; "addition")]
+    #[test_case(annotated!("hi") => true; "string")]
+    #[test_case(annotated!(UseDebug(1)) => false; "debug only")]
+    #[test_case(annotated!(UseStringify(1)) => false; "stringify only")]
+    fn has_display<T>(annotated: Annotated<T>) -> bool {
+        annotated.as_display().is_some()
     }
 }

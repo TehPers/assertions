@@ -24,6 +24,25 @@ pub trait Assertion<T> {
 
     /// Executes this assertion on a given subject.
     fn execute(self, cx: AssertionContext, subject: T) -> Self::Output;
+
+    /// Executes this assertion on an annotated subject.
+    ///
+    /// By default, this just calls [`execute`]. This can be overridden if
+    /// needed for assertions that need access to the annotated subject.
+    ///
+    /// Assertions created by modifiers should call [`execute`] instead. This is
+    /// called automatically when using [`expect!`] after modifiers are
+    /// executed.
+    ///
+    /// [`execute`]: Assertion::execute
+    /// [`expect!`]: crate::expect!
+    #[inline]
+    fn execute_annotated(self, cx: AssertionContext, subject: Annotated<T>) -> Self::Output
+    where
+        Self: Sized,
+    {
+        self.execute(cx, subject.into_inner())
+    }
 }
 
 /// Modifies an assertion.

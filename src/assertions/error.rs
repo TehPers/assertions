@@ -1,9 +1,9 @@
 use std::{
     error::Error,
-    fmt::{Debug, Display, Formatter},
+    fmt::{Debug, Display, Formatter, Write},
 };
 
-use crate::assertions::ContextFrame;
+use crate::{assertions::ContextFrame, styles};
 
 use super::AssertionContext;
 
@@ -74,6 +74,7 @@ impl AssertionOutput {
 
 /// An error that can occur during an assertion.
 #[must_use]
+#[derive(Debug)]
 pub struct AssertionError {
     cx: Box<AssertionContext>,
     message: String,
@@ -89,36 +90,6 @@ impl AssertionError {
     }
 }
 
-#[cfg(feature = "colors")]
-mod styles {
-    use std::fmt::Display;
-
-    use owo_colors::{OwoColorize, Stream};
-
-    #[inline]
-    pub fn dimmed(s: &impl Display) -> impl Display + '_ {
-        s.if_supports_color(Stream::Stderr, |s| s.dimmed())
-    }
-
-    #[inline]
-    pub fn bright_red(s: &impl Display) -> impl Display + '_ {
-        s.if_supports_color(Stream::Stderr, |s| s.bright_red())
-    }
-}
-
-#[cfg(not(feature = "colors"))]
-mod styles {
-    #[inline]
-    pub fn dimmed<T>(s: &T) -> &T {
-        s
-    }
-
-    #[inline]
-    pub fn bright_red<T>(s: &T) -> &T {
-        s
-    }
-}
-
 fn write_frame(f: &mut Formatter, frame: &ContextFrame, comment: &str) -> std::fmt::Result {
     writeln!(f, "  {}:{comment}", frame.assertion_name)?;
     for (key, value) in &frame.annotations {
@@ -128,7 +99,7 @@ fn write_frame(f: &mut Formatter, frame: &ContextFrame, comment: &str) -> std::f
     Ok(())
 }
 
-impl Debug for AssertionError {
+impl Display for AssertionError {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         writeln!(f, "assertion failed:")?;
         writeln!(
@@ -143,22 +114,45 @@ impl Debug for AssertionError {
         )?;
         writeln!(f)?;
 
-        // Write visited frames
+        // Write frames
         writeln!(f, "steps:")?;
         let mut idx = 0;
-        for frame in &self.cx.visited {
-            let comment = if idx == self.cx.visited.len() - 1 {
-                format!(" {}", styles::bright_red(&self.message))
-            } else {
+        let mut pages = Vec::new();
+        let frames = self.cx.visited.iter().chain(self.cx.recovered.iter());
+        for frame in frames {
+            let mut comment_parts = Vec::new();
+
+            // Additional pages
+            if !frame.pages.is_empty() {
+                // Track pages for later
+                let mut related_pages = String::new();
+                for page in &frame.pages {
+                    let page_idx = pages.len() + 1;
+                    if related_pages.is_empty() {
+                        write!(related_pages, "{}", page_idx)?;
+                    } else {
+                        write!(related_pages, ", {}", page_idx)?;
+                    }
+
+                    pages.push(page);
+                }
+
+                // Write references to the comment
+                comment_parts.push(styles::reference(&format!("[{related_pages}]")).to_string())
+            }
+
+            // Error message
+            if idx == self.cx.visited.len() - 1 {
+                comment_parts.push(styles::error(&self.message).to_string());
+            }
+
+            // Write frame
+            let comment = if comment_parts.is_empty() {
                 String::new()
+            } else {
+                format!(" {}", comment_parts.join(" "))
             };
             write_frame(f, frame, &comment)?;
-            idx += 1;
-        }
-
-        // Write recovered frames
-        for frame in &self.cx.recovered {
-            write_frame(f, frame, "")?;
             idx += 1;
         }
 
@@ -168,14 +162,18 @@ impl Debug for AssertionError {
             idx += 1;
         }
 
-        Ok(())
-    }
-}
+        // Write context pages
+        for (idx, (title, page)) in pages.into_iter().enumerate() {
+            writeln!(f)?;
+            writeln!(
+                f,
+                "----- {title} {} -----",
+                styles::reference(&format_args!("[{}]", idx + 1))
+            )?;
+            writeln!(f, "{page}")?;
+        }
 
-impl Display for AssertionError {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        Debug::fmt(self, f)
+        Ok(())
     }
 }
 

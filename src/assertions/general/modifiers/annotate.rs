@@ -4,7 +4,7 @@ use crate::{
     assertions::{
         Assertion, AssertionBuilder, AssertionContext, AssertionContextBuilder, AssertionModifier,
     },
-    metadata::{Annotated, AnnotatedKind},
+    metadata::Annotated,
 };
 
 #[doc(hidden)]
@@ -104,16 +104,24 @@ where
     type Output = A::Output;
 
     fn execute(self, cx: AssertionContext, subject: T) -> Self::Output {
-        let mut next_cx = cx.next();
-        let annotated = (self.annotate)(subject);
-        next_cx.annotate(
-            "received",
-            match annotated.kind() {
-                AnnotatedKind::Debug => annotated.as_str(),
-                AnnotatedKind::Stringify => "? (no debug representation)",
-            },
-        );
+        let mut cx = cx.next();
+        let subject = (self.annotate)(subject);
 
-        self.next.execute(next_cx, annotated.into_inner())
+        // Track the received value in the context
+        if let Some(debug) = subject.as_debug() {
+            cx.annotate("received", format_args!("{debug:?}"));
+        } else {
+            cx.annotate("received", "? (no debug representation)");
+        }
+
+        self.next.execute_annotated(cx, subject)
+    }
+
+    #[inline]
+    fn execute_annotated(self, _cx: AssertionContext, _subject: Annotated<T>) -> Self::Output
+    where
+        Self: Sized,
+    {
+        unreachable!("call execute() instead")
     }
 }

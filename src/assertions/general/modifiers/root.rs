@@ -24,6 +24,6 @@ where
 
     #[inline]
     fn apply(self, cx: AssertionContextBuilder, assertion: A) -> Self::Output {
-        assertion.execute(cx.innerner, self.subject.into_inner())
+        assertion.execute(cx.inner, self.subject.into_inner())
     }
 }

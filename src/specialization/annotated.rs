@@ -1,41 +1,62 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
 use crate::metadata::Annotated;
 
 use super::__SpecializeWrapper;
 
-pub struct __AnnotatedStringifyTag;
+pub struct __AnnotatedNoImplTag;
 
-impl __AnnotatedStringifyTag {
-    pub fn annotate<T>(self, value: T, stringified: &'static str) -> Annotated<T> {
-        Annotated::from_stringified(value, stringified)
-    }
+impl __AnnotatedNoImplTag {
+    pub fn __apply<T>(self, _annotated: &mut Annotated<T>) {}
 }
-pub trait __AnnotatedStringifyKind {
+
+pub trait __AnnotatedNoImplKind: Sized {
     #[inline]
-    fn __annotated_kind(&self) -> __AnnotatedStringifyTag {
-        __AnnotatedStringifyTag
+    fn __kind(self) -> __AnnotatedNoImplTag {
+        __AnnotatedNoImplTag
     }
 }
 
-impl<T> __AnnotatedStringifyKind for &__SpecializeWrapper<T> {}
+impl<T> __AnnotatedNoImplKind for &__SpecializeWrapper<T> where T: ?Sized {}
 
 pub struct __AnnotatedDebugTag;
 
 impl __AnnotatedDebugTag {
-    pub fn annotate<T>(self, value: T, stringified: &'static str) -> Annotated<T>
+    #[inline]
+    pub fn __apply<T>(self, annotated: &mut Annotated<T>)
     where
         T: Debug,
     {
-        Annotated::from_debug(value, stringified)
+        annotated.mark_debug();
     }
 }
 
-pub trait __AnnotatedDebugKind {
+pub trait __AnnotatedDebugKind: Sized {
     #[inline]
-    fn __annotated_kind(&self) -> __AnnotatedDebugTag {
+    fn __kind(self) -> __AnnotatedDebugTag {
         __AnnotatedDebugTag
     }
 }
 
-impl<T> __AnnotatedDebugKind for __SpecializeWrapper<T> where T: Debug {}
+impl<T> __AnnotatedDebugKind for __SpecializeWrapper<(T, dyn Debug)> where T: Debug {}
+
+pub struct __AnnotatedDisplayTag;
+
+impl __AnnotatedDisplayTag {
+    #[inline]
+    pub fn __apply<T>(self, annotated: &mut Annotated<T>)
+    where
+        T: Display,
+    {
+        annotated.mark_display();
+    }
+}
+
+pub trait __AnnotatedDisplayKind: Sized {
+    #[inline]
+    fn __kind(self) -> __AnnotatedDisplayTag {
+        __AnnotatedDisplayTag
+    }
+}
+
+impl<T> __AnnotatedDisplayKind for __SpecializeWrapper<(T, dyn Display)> where T: Display {}
