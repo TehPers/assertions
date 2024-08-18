@@ -159,18 +159,19 @@ impl Display for AssertionError {
         // Write non-visited frames
         for frame in &self.cx.remaining[self.cx.recovered.len()..] {
             writeln!(f, "  {frame}: {}", styles::dimmed(&"(not visited)"))?;
+            writeln!(f)?;
             idx += 1;
         }
 
         // Write context pages
         for (idx, (title, page)) in pages.into_iter().enumerate() {
-            writeln!(f)?;
             writeln!(
                 f,
                 "----- {title} {} -----",
                 styles::reference(&format_args!("[{}]", idx + 1))
             )?;
             writeln!(f, "{page}")?;
+            writeln!(f)?;
         }
 
         Ok(())
