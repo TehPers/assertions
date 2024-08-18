@@ -94,12 +94,13 @@ impl AssertionContext {
     ///
     /// For example, a page can provide a diff between an expected value and the
     /// received subject.
+    #[allow(clippy::needless_pass_by_value, clippy::missing_panics_doc)]
     pub fn add_page(&mut self, title: impl Into<Cow<'static, str>>, page: impl ToString) {
         self.visited
             .last_mut()
             .expect("no visited frames (this is a bug)")
             .pages
-            .push((title.into(), page.to_string()))
+            .push((title.into(), page.to_string()));
     }
 
     /// Creates a new success value.
@@ -156,6 +157,7 @@ impl AssertionContext {
     ///
     /// [`expect!`]: crate::expect!
     #[inline]
+    #[must_use]
     pub fn source_location(&self) -> SourceLoc {
         self.source_loc
     }

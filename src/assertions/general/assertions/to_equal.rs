@@ -48,7 +48,7 @@ where
 
         // Perform the diff
         if let Some(diff) = fmt_diff(&expected_repr, &subject_repr) {
-            cx.add_page("diff", diff)
+            cx.add_page("diff", diff);
         }
 
         cx.fail("values not equal")

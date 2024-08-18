@@ -133,7 +133,7 @@ where
 {
     #[inline]
     pub(crate) fn mark_debug(&mut self) {
-        self.as_debug = Some(|val| val)
+        self.as_debug = Some(|val| val);
     }
 }
 
@@ -143,7 +143,7 @@ where
 {
     #[inline]
     pub(crate) fn mark_display(&mut self) {
-        self.as_display = Some(|val| val)
+        self.as_display = Some(|val| val);
     }
 }
 
@@ -176,6 +176,7 @@ mod tests {
     #[test_case(annotated!("hi") => true; "string")]
     #[test_case(annotated!(UseDebug(1)) => true; "debug only")]
     #[test_case(annotated!(UseStringify(1)) => false; "stringify only")]
+    #[allow(clippy::needless_pass_by_value)]
     fn has_debug<T>(annotated: Annotated<T>) -> bool {
         annotated.as_debug().is_some()
     }
@@ -185,6 +186,7 @@ mod tests {
     #[test_case(annotated!("hi") => true; "string")]
     #[test_case(annotated!(UseDebug(1)) => false; "debug only")]
     #[test_case(annotated!(UseStringify(1)) => false; "stringify only")]
+    #[allow(clippy::needless_pass_by_value)]
     fn has_display<T>(annotated: Annotated<T>) -> bool {
         annotated.as_display().is_some()
     }

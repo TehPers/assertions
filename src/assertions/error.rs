@@ -129,16 +129,16 @@ impl Display for AssertionError {
                 for page in &frame.pages {
                     let page_idx = pages.len() + 1;
                     if related_pages.is_empty() {
-                        write!(related_pages, "{}", page_idx)?;
+                        write!(related_pages, "{page_idx}")?;
                     } else {
-                        write!(related_pages, ", {}", page_idx)?;
+                        write!(related_pages, ", {page_idx}")?;
                     }
 
                     pages.push(page);
                 }
 
                 // Write references to the comment
-                comment_parts.push(styles::reference(&format!("[{related_pages}]")).to_string())
+                comment_parts.push(styles::reference(&format!("[{related_pages}]")).to_string());
             }
 
             // Error message

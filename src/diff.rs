@@ -5,11 +5,48 @@ pub fn fmt_diff(_expected: &str, _actual: &str) -> Option<String> {
 
 #[cfg(feature = "diff")]
 pub fn fmt_diff(expected: &str, actual: &str) -> Option<String> {
+    use diff::Result;
+
+    let lines = diff::lines(expected, actual);
+    let mut output = String::with_capacity(expected.len().max(actual.len()));
+    let mut state = diff_utils::LineDiffState::NoDiff;
+    let mut different = false; // make sure there is actually a change
+
+    for line in lines {
+        different = different || matches!(line, Result::Left(_) | Result::Right(_));
+        state = state.step(&mut output, line);
+    }
+
+    if different {
+        Some(output)
+    } else {
+        None
+    }
+}
+
+#[cfg(feature = "diff")]
+mod diff_utils {
     use std::fmt::Write;
 
     use diff::Result;
 
     use crate::styles;
+
+    #[derive(Debug, Default)]
+    pub enum LineDiffState<'a> {
+        #[default]
+        NoDiff,
+        Removing(Vec<&'a str>),
+        Adding(Vec<&'a str>),
+        Removed {
+            removed: Vec<&'a str>,
+            adding: Vec<&'a str>,
+        },
+        Added {
+            added: Vec<&'a str>,
+            removing: Vec<&'a str>,
+        },
+    }
 
     #[derive(Clone, Copy, PartialEq, Eq)]
     enum ChangeType {
@@ -85,22 +122,6 @@ pub fn fmt_diff(expected: &str, actual: &str) -> Option<String> {
         writeln!(output, "{} {added_repr}", styles::added(&"+")).unwrap();
     }
 
-    #[derive(Debug, Default)]
-    enum LineDiffState<'a> {
-        #[default]
-        NoDiff,
-        Removing(Vec<&'a str>),
-        Adding(Vec<&'a str>),
-        Removed {
-            removed: Vec<&'a str>,
-            adding: Vec<&'a str>,
-        },
-        Added {
-            added: Vec<&'a str>,
-            removing: Vec<&'a str>,
-        },
-    }
-
     impl<'a> LineDiffState<'a> {
         fn flush(self, output: &mut String) {
             match self {
@@ -146,7 +167,7 @@ pub fn fmt_diff(expected: &str, actual: &str) -> Option<String> {
             }
         }
 
-        fn step(self, output: &mut String, result: Result<&'a str>) -> Self {
+        pub fn step(self, output: &mut String, result: Result<&'a str>) -> Self {
             match (self, result) {
                 // NoDiff
                 (LineDiffState::NoDiff, Result::Left(line)) => LineDiffState::Removing(vec![line]),
@@ -176,12 +197,6 @@ pub fn fmt_diff(expected: &str, actual: &str) -> Option<String> {
                     LineDiffState::Adding(added)
                 }
 
-                // Flush
-                (state @ (LineDiffState::Removing(_) | LineDiffState::Adding(_)), result) => {
-                    state.flush(output);
-                    LineDiffState::NoDiff.step(output, result)
-                }
-
                 // Removed
                 (
                     LineDiffState::Removed {
@@ -206,28 +221,12 @@ pub fn fmt_diff(expected: &str, actual: &str) -> Option<String> {
                     LineDiffState::Added { added, removing }
                 }
 
-                // Interleave
+                // Flush
                 (state, result) => {
                     state.flush(output);
                     LineDiffState::NoDiff.step(output, result)
                 }
             }
         }
-    }
-
-    let lines = diff::lines(expected, actual);
-    let mut output = String::with_capacity(expected.len().max(actual.len()));
-    let mut state = LineDiffState::NoDiff;
-    let mut different = false; // make sure there is actually a change
-
-    for line in lines {
-        different = different || matches!(line, Result::Left(_) | Result::Right(_));
-        state = state.step(&mut output, line);
-    }
-
-    if !different {
-        None
-    } else {
-        Some(output)
     }
 }

@@ -1,5 +1,6 @@
 use std::marker::PhantomData;
 
+#[must_use]
 pub struct __SpecializeWrapper<T: ?Sized>(PhantomData<*const T>);
 
 impl<T> __SpecializeWrapper<T> {
