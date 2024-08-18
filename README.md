@@ -50,7 +50,80 @@ steps:
     expected: "0.png"
 ```
 
-Supports colored messages with the `colors` feature.
+Supports:
+
+- colored messages with the `colors` feature
+- diffing with the `diff` feature
+- async assertions with the `futures` feature
+- regular expressions with the `regex` feature
+
+### Output diffs
+
+Check how outputs differ based on their `Display` representations where
+available:
+
+```text
+---- string_diff stdout ----
+thread 'string_diff' panicked at tests\examples.rs:8:5:
+assertion failed:
+  at: tests\examples.rs:8:5 [examples]
+  subject: "The quick\nbrown fox\njumped over\nthe lazy\ndog."
+
+steps:
+  to_equal: [1] values not equal
+    received: "The quick\nbrown fox\njumped over\nthe lazy\ndog."
+    expected: "the quick brown\nspotted fox\njumped over\nthe lazyish\ndog."
+
+----- diff [1] -----
+- the quick brown
++ The quick
+- spotted fox
++ brown fox
+  jumped over
+- the lazyish
++ the lazy
+  dog.
+```
+
+Or, for types that only implement `Debug`, use that representation automatically
+instead:
+
+```text
+---- debug_diff stdout ----
+thread 'debug_diff' panicked at tests\examples.rs:28:5:
+assertion failed:
+  at: tests\examples.rs:28:5 [examples]
+  subject: [A { inner: 1 }, A { inner: 3 }, A { inner: 3 }, A { inner: 512 }, A { inner: 761 }]
+
+steps:
+  to_equal: [1] values not equal
+    received: [A { inner: 1 }, A { inner: 3 }, A { inner: 3 }, A { inner: 512 }, A { inner: 761 }]
+    expected: [A { inner: 1 }, A { inner: 2 }, A { inner: 3 }, A { inner: 513 }, A { inner: 761 }]
+
+----- diff [1] -----
+  [
+      A {
+          inner: 1,
+      },
+      A {
+-         inner: 2,
++         inner: 3,
+      },
+      A {
+          inner: 3,
+      },
+      A {
+-         inner: 513,
++         inner: 512,
+      },
+      A {
+          inner: 761,
+      },
+  ]
+```
+
+For colored output, try running some of the example tests in the `tests/`
+directory.
 
 ## Built-in assertions
 

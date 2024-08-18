@@ -91,46 +91,47 @@
 /// annotated. Values passed into assertions (and from modifiers to other
 /// assertions) are *transparently* annotated.
 ///
-/// An annotated value is a value with an additional string representation
-/// attached to it. This string representation is generated either from the
-/// value's [`Debug`] representation or from the [stringified] source code
-/// itself (if no [`Debug`] implementation is available).
+/// An annotated value is a value with additional information about its
+/// representations. The source code being annotated is [stringified], and
+/// whether the type supports [`Debug`] and/or [`Display`] is also captured in a
+/// way where those implementations can be used to format the value.
 ///
 /// Above, it was noted that applying, for example, the [`not`] modifier to an
 /// assertion `a` was *functionally* equivalent to calling `not(a)`. In
 /// implementation, [`not`] does not actually receive the assertion `a`, but
 /// instead receives a special annotated assertion which wraps `a`.
 ///
-/// This annotated assertion is a hidden modifier that annotates the value that
-/// it receives. This means that when calling `expect!(1, not, to_equal(2))`,
-/// the value being sent from [`not`] to [`to_equal`] is automatically annotated
-/// by this macro. Additionally, the `2` parameter to [`to_equal`] is
-/// automatically annotated by this macro, so the [`to_equal`] function is
-/// actually not receiving an [`i32`], but an annotated version of it.
+/// This annotated assertion is created by a hidden modifier that annotates the
+/// value that it receives. This means that when calling
+/// `expect!(1, not, to_equal(2))`, the value being sent from [`not`] to
+/// [`to_equal`] is automatically annotated by this macro. Additionally, the `2`
+/// parameter to [`to_equal`] is automatically annotated by this macro, so the
+/// [`to_equal`] function is actually not receiving an [`i32`], but an annotated
+/// version of it.
 ///
 /// In other words, if the hidden modifier's name is `annotate` and there
 /// existed a constructor `Annotated(T)` to construct an annotated value, then
 /// the assertion being called could be simplistically represented as
 /// `annotate(not(annotate(to_equal(Annotated(2)))))`. Note that the parameter
-/// to [`to_equal`] is also annotated, as would any parameters to any modifiers
-/// in the chain (if there existed any which accepted parameters).
+/// to [`to_equal`] is also annotated, as would be any parameters to any
+/// modifiers in the chain (if there existed any which accepted parameters).
 ///
 /// This macro must perform the annotation itself to avoid adding additional
 /// bounds to assertions. This is because this macro performs autoref
 /// specialization to extract the string representation of the value. Without
 /// this, the [`to_equal`] assertion would need to have an additional [`Debug`]
 /// constraint on the values that it receives to be able to display those values
-/// in case of an assertion failure, meaning that assertion would not be as
-/// useful for values that do not have a [`Debug`] representation.
+/// in case of an assertion failure for example, meaning that assertion would
+/// not be as useful for values that do not have a [`Debug`] representation.
 ///
 /// One limitation of this approach is that values being passed from modifiers
 /// to other assertions down the chain do not have a meaningful source
-/// representation. If those values do not have a [`Debug`] implementation, then
-/// the string representation of those values will not be meaningful. However,
-/// assertions can see whether a meaningful string representation is available
-/// before generating error messages, and this approach removes the burden on
-/// assertions (and users) to constrain their inputs to values that can be
-/// meaningfully represented as a string.
+/// representation. If those values do not have a [`Debug`] or [`Display`]
+/// implementation, then the string representation of those values will not be
+/// meaningful. However, assertions can see whether a meaningful string
+/// representation is available before generating error messages, and this
+/// approach removes the burden on assertions (and users) to constrain their
+/// inputs to values that can be meaningfully represented as a string.
 ///
 /// Note that there will not always be a meaningful string representation of a
 /// value. For values defined directly in source code (like `2` in the example
@@ -145,6 +146,7 @@
 /// [`Annotated<T>`]: crate::metadata::Annotated
 /// [`AnnotatedAssertion<A, T>`]: crate::assertions::AnnotatedAssertion
 /// [`Debug`]: std::fmt::Debug
+/// [`Display`]: std::fmt::Display
 /// [`all`]: crate::prelude::IteratorAssertions::all
 /// [`map`]: crate::prelude::GeneralAssertions::map
 /// [`not`]: crate::prelude::GeneralAssertions::not
