@@ -46,9 +46,13 @@ where
             return cx.fail("values not equal");
         };
 
-        // Perform the diff
-        if let Some(diff) = fmt_diff(&expected_repr, &subject_repr) {
-            cx.add_page("diff", diff);
+        // Skip the diff if the representations aren't multiline to avoid
+        // cluttering the output
+        if subject_repr.contains('\n') || expected_repr.contains('\n') {
+            // Perform the diff
+            if let Some(diff) = fmt_diff(&expected_repr, &subject_repr) {
+                cx.add_page("diff", diff);
+            }
         }
 
         cx.fail("values not equal")
@@ -58,5 +62,33 @@ where
     fn execute(self, mut cx: AssertionContext, subject: T) -> Self::Output {
         cx.annotate("expected", &self.expected);
         cx.pass_if(subject == self.expected.into_inner(), "values not equal")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::prelude::*;
+
+    #[test]
+    fn no_diff() {
+        // Don't show diffs for short values
+        expect!(
+            try_expect!(1, to_equal(2)),
+            to_be_err_and,
+            as_display,
+            not,
+            to_contain_substr("diff"),
+        );
+    }
+
+    #[test]
+    fn do_diff() {
+        // Show diffs for longer values
+        expect!(
+            try_expect!("abc\ndef", to_equal("abc\ndeg")),
+            to_be_err_and,
+            as_display,
+            to_contain_substr("diff"),
+        );
     }
 }
