@@ -7,6 +7,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+  RUSTDOCFLAGS: -D warnings
 
 jobs:
   format:
@@ -34,7 +36,9 @@ jobs:
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@clippy
       - name: Run clippy
-        run: cargo clippy --tests -- -D warnings
+        run: cargo clippy --tests --all-features
+      - name: Check docs for errors
+        run: cargo doc --no-deps --all-features ${{matrix.flags}}
 
   test:
     name: Test (${{ matrix.name }})
@@ -62,4 +66,4 @@ jobs:
           toolchain: nightly
           components: rustfmt
       - name: Run tests
-        run: cargo test --verbose
+        run: cargo test --verbose ${{matrix.flags}}
