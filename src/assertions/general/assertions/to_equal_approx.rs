@@ -6,12 +6,12 @@ use crate::{
 
 /// Asserts that the subject is approximately equal to an expected value.
 #[derive(Clone, Debug)]
-pub struct ToEqualApproxAssertion<T> {
+pub struct ToEqualApprox<T> {
     expected: Annotated<T>,
     max_delta: Annotated<T>,
 }
 
-impl<T> ToEqualApproxAssertion<T> {
+impl<T> ToEqualApprox<T> {
     #[inline]
     pub(crate) fn new(expected: Annotated<T>, max_delta: Annotated<T>) -> Self {
         Self {
@@ -21,7 +21,7 @@ impl<T> ToEqualApproxAssertion<T> {
     }
 }
 
-impl Assertion<f32> for ToEqualApproxAssertion<f32> {
+impl Assertion<f32> for ToEqualApprox<f32> {
     type Output = AssertionOutput;
 
     fn execute(self, mut cx: AssertionContext, subject: f32) -> Self::Output {
@@ -34,7 +34,7 @@ impl Assertion<f32> for ToEqualApproxAssertion<f32> {
     }
 }
 
-impl Assertion<f64> for ToEqualApproxAssertion<f64> {
+impl Assertion<f64> for ToEqualApprox<f64> {
     type Output = AssertionOutput;
 
     fn execute(self, mut cx: AssertionContext, subject: f64) -> Self::Output {

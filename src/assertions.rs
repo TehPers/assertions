@@ -46,9 +46,9 @@
 //!
 //! // We need to create a struct for our assertion and define its behavior
 //! #[derive(Clone, Debug)]
-//! pub struct ToBeZeroAssertion(Annotated<String>);
+//! pub struct ToBeZero(Annotated<String>);
 //!
-//! impl Assertion<i32> for ToBeZeroAssertion {
+//! impl Assertion<i32> for ToBeZero {
 //!     // What does this assertion return when it's executed? Sometimes
 //!     // assertions want to return other output types, like if they need to
 //!     // run asynchronously and have to return a future instead.
@@ -69,8 +69,8 @@
 //! trait MyAssertions {
 //!     // Input parameters are automatically annotated, so we need to wrap them
 //!     // with `Annotated<T>`
-//!     fn to_be_zero(&self, note: Annotated<String>) -> ToBeZeroAssertion {
-//!         ToBeZeroAssertion(note)
+//!     fn to_be_zero(&self, note: Annotated<String>) -> ToBeZero {
+//!         ToBeZero(note)
 //!     }
 //! }
 //!

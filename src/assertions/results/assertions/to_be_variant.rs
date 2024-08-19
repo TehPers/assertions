@@ -5,18 +5,18 @@ use crate::{
 
 /// Asserts that the subject is a specific [`Result`] variant.
 #[derive(Clone, Debug)]
-pub struct ToBeResultVariantAssertion {
+pub struct ToBeResultVariant {
     expected: ResultVariant,
 }
 
-impl ToBeResultVariantAssertion {
+impl ToBeResultVariant {
     #[inline]
     pub(crate) fn new(expected: ResultVariant) -> Self {
         Self { expected }
     }
 }
 
-impl<R> Assertion<R> for ToBeResultVariantAssertion
+impl<R> Assertion<R> for ToBeResultVariant
 where
     R: Resultish,
 {

@@ -8,14 +8,14 @@ use crate::{
 
 /// A general-purpose assertion for comparing the ordering between two values.
 #[derive(Clone, Debug)]
-pub struct ToCmpAssertion<U> {
+pub struct ToCmp<U> {
     boundary: Annotated<U>,
     ordering: Ordering,
     allow_eq: bool,
     cmp_message: &'static str,
 }
 
-impl<U> ToCmpAssertion<U> {
+impl<U> ToCmp<U> {
     #[inline]
     pub(crate) fn new(
         boundary: Annotated<U>,
@@ -32,7 +32,7 @@ impl<U> ToCmpAssertion<U> {
     }
 }
 
-impl<T, U> Assertion<T> for ToCmpAssertion<U>
+impl<T, U> Assertion<T> for ToCmp<U>
 where
     T: PartialOrd<U>,
 {

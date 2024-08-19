@@ -1,6 +1,6 @@
 use crate::assertions::AssertionBuilder;
 
-use super::{OptionVariant, Optionish, SomeAndModifier, ToBeOptionVariantAssertion};
+use super::{OptionVariant, Optionish, SomeAndModifier, ToBeOptionVariant};
 
 /// Assertions and modifiers for [`Option`]s.
 pub trait OptionAssertions<T, M>
@@ -38,8 +38,8 @@ where
     /// ```
     #[inline]
     #[must_use]
-    fn to_be_some(&self) -> ToBeOptionVariantAssertion {
-        ToBeOptionVariantAssertion::new(OptionVariant::Some)
+    fn to_be_some(&self) -> ToBeOptionVariant {
+        ToBeOptionVariant::new(OptionVariant::Some)
     }
 
     /// Asserts that the subject does not hold a value.
@@ -57,8 +57,8 @@ where
     /// ```
     #[inline]
     #[must_use]
-    fn to_be_none(&self) -> ToBeOptionVariantAssertion {
-        ToBeOptionVariantAssertion::new(OptionVariant::None)
+    fn to_be_none(&self) -> ToBeOptionVariant {
+        ToBeOptionVariant::new(OptionVariant::None)
     }
 }
 

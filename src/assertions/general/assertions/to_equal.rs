@@ -7,18 +7,18 @@ use crate::{
 
 /// Asserts that the subject is equal to an expected value.
 #[derive(Clone, Debug)]
-pub struct ToEqualAssertion<U> {
+pub struct ToEqual<U> {
     expected: Annotated<U>,
 }
 
-impl<U> ToEqualAssertion<U> {
+impl<U> ToEqual<U> {
     #[inline]
     pub(crate) fn new(expected: Annotated<U>) -> Self {
         Self { expected }
     }
 }
 
-impl<T, U> Assertion<T> for ToEqualAssertion<U>
+impl<T, U> Assertion<T> for ToEqual<U>
 where
     T: PartialEq<U>,
 {

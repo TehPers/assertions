@@ -1,8 +1,8 @@
 use crate::{assertions::AssertionBuilder, metadata::Annotated};
 
 use super::{
-    AsUtf8Modifier, CountModifier, MergeModifier, MergeStrategy, NthModifier, ToContainAssertion,
-    ToContainExactlyAssertion,
+    AsUtf8Modifier, CountModifier, MergeModifier, MergeStrategy, NthModifier, ToContain,
+    ToContainExactly,
 };
 
 /// Assertions and modifiers for [Iterator]s.
@@ -155,11 +155,11 @@ where
     /// expect!([1, 2, 3], to_contain(4));
     /// ```
     #[inline]
-    fn to_contain<U>(&self, expected: Annotated<U>) -> ToContainAssertion<U>
+    fn to_contain<U>(&self, expected: Annotated<U>) -> ToContain<U>
     where
         T::Item: PartialEq<U>,
     {
-        ToContainAssertion::new(expected)
+        ToContain::new(expected)
     }
 
     /// Asserts that the subject is equal to the given sequence.
@@ -177,12 +177,12 @@ where
     /// expect!([1, 2, 3], to_contain_exactly([3, 2, 1]));
     /// ```
     #[inline]
-    fn to_contain_exactly<I>(&self, expected: Annotated<I>) -> ToContainExactlyAssertion<I>
+    fn to_contain_exactly<I>(&self, expected: Annotated<I>) -> ToContainExactly<I>
     where
         I: IntoIterator,
         T::Item: PartialEq<I::Item>,
     {
-        ToContainExactlyAssertion::new(expected)
+        ToContainExactly::new(expected)
     }
 }
 

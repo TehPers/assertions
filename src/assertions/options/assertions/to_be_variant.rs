@@ -5,18 +5,18 @@ use crate::{
 
 /// Asserts that the subject is a specific [`Option`] variant.
 #[derive(Clone, Debug)]
-pub struct ToBeOptionVariantAssertion {
+pub struct ToBeOptionVariant {
     expected: OptionVariant,
 }
 
-impl ToBeOptionVariantAssertion {
+impl ToBeOptionVariant {
     #[inline]
     pub(crate) fn new(expected: OptionVariant) -> Self {
         Self { expected }
     }
 }
 
-impl<O> Assertion<O> for ToBeOptionVariantAssertion
+impl<O> Assertion<O> for ToBeOptionVariant
 where
     O: Optionish,
 {

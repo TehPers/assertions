@@ -6,18 +6,18 @@ use crate::{
 
 /// Asserts that the subject contains an expected element.
 #[derive(Clone, Debug)]
-pub struct ToContainAssertion<U> {
+pub struct ToContain<U> {
     expected: Annotated<U>,
 }
 
-impl<U> ToContainAssertion<U> {
+impl<U> ToContain<U> {
     #[inline]
     pub(crate) fn new(expected: Annotated<U>) -> Self {
         Self { expected }
     }
 }
 
-impl<U, T> Assertion<T> for ToContainAssertion<U>
+impl<U, T> Assertion<T> for ToContain<U>
 where
     T: IntoIterator<Item: PartialEq<U>>,
 {

@@ -9,11 +9,11 @@ use crate::{
 
 /// Asserts that the subject matches a regular expression.
 #[derive(Clone, Debug)]
-pub struct ToMatchRegexAssertion {
+pub struct ToMatchRegex {
     regex: Arc<Regex>,
 }
 
-impl ToMatchRegexAssertion {
+impl ToMatchRegex {
     #[inline]
     pub(crate) fn new(pattern: &str) -> Self {
         let regex = Regex::new(pattern).expect("invalid regex");
@@ -23,7 +23,7 @@ impl ToMatchRegexAssertion {
     }
 }
 
-impl<T> Assertion<T> for ToMatchRegexAssertion
+impl<T> Assertion<T> for ToMatchRegex
 where
     T: AsRef<str>,
 {

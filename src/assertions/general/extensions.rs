@@ -6,8 +6,8 @@ use crate::{
 };
 
 use super::{
-    Float, MapModifier, NotModifier, ToBeOneOfAssertion, ToCmpAssertion, ToEqualApproxAssertion,
-    ToEqualAssertion, ToSatisfyAssertion, ToSatisfyWithAssertion,
+    Float, MapModifier, NotModifier, ToBeOneOf, ToCmp, ToEqual, ToEqualApprox, ToSatisfy,
+    ToSatisfyWith,
 };
 
 /// General-purpose assertions and modifiers.
@@ -115,11 +115,11 @@ pub trait GeneralAssertions<T, M> {
     /// expect!(1, to_satisfy(is_odd));
     /// ```
     #[inline]
-    fn to_satisfy<F>(&self, predicate: Annotated<F>) -> ToSatisfyAssertion<F>
+    fn to_satisfy<F>(&self, predicate: Annotated<F>) -> ToSatisfy<F>
     where
         F: FnOnce(T) -> bool,
     {
-        ToSatisfyAssertion::new(predicate)
+        ToSatisfy::new(predicate)
     }
 
     /// Asserts that the subject matches a series of inner assertions. This
@@ -173,11 +173,11 @@ pub trait GeneralAssertions<T, M> {
     /// ```
     // TODO: make an async version
     #[inline]
-    fn to_satisfy_with<F>(&self, predicate: Annotated<F>) -> ToSatisfyWithAssertion<F>
+    fn to_satisfy_with<F>(&self, predicate: Annotated<F>) -> ToSatisfyWith<F>
     where
         F: FnOnce(T) -> Result<(), AssertionError>,
     {
-        ToSatisfyWithAssertion::new(predicate)
+        ToSatisfyWith::new(predicate)
     }
 
     /// Asserts that the subject is equal to the given value.
@@ -194,11 +194,11 @@ pub trait GeneralAssertions<T, M> {
     /// expect!(1, to_equal(2));
     /// ```
     #[inline]
-    fn to_equal<U>(&self, expected: Annotated<U>) -> ToEqualAssertion<U>
+    fn to_equal<U>(&self, expected: Annotated<U>) -> ToEqual<U>
     where
         T: PartialEq<U>,
     {
-        ToEqualAssertion::new(expected)
+        ToEqual::new(expected)
     }
 
     /// Asserts that the subject is within a specified range of another value.
@@ -219,11 +219,11 @@ pub trait GeneralAssertions<T, M> {
         &self,
         expected: Annotated<T>,
         max_delta: Annotated<T>,
-    ) -> ToEqualApproxAssertion<T>
+    ) -> ToEqualApprox<T>
     where
         T: Float,
     {
-        ToEqualApproxAssertion::new(expected, max_delta)
+        ToEqualApprox::new(expected, max_delta)
     }
 
     /// Asserts that the subject is less than the given value.
@@ -240,11 +240,11 @@ pub trait GeneralAssertions<T, M> {
     /// expect!(2, to_be_less_than(1));
     /// ```
     #[inline]
-    fn to_be_less_than<U>(&self, boundary: Annotated<U>) -> ToCmpAssertion<U>
+    fn to_be_less_than<U>(&self, boundary: Annotated<U>) -> ToCmp<U>
     where
         T: PartialOrd<U>,
     {
-        ToCmpAssertion::new(boundary, Ordering::Less, false, "less than")
+        ToCmp::new(boundary, Ordering::Less, false, "less than")
     }
 
     /// Asserts that the subject is less than or equal to the given value.
@@ -262,11 +262,11 @@ pub trait GeneralAssertions<T, M> {
     /// expect!(2, to_be_less_than_or_equal_to(1));
     /// ```
     #[inline]
-    fn to_be_less_than_or_equal_to<U>(&self, boundary: Annotated<U>) -> ToCmpAssertion<U>
+    fn to_be_less_than_or_equal_to<U>(&self, boundary: Annotated<U>) -> ToCmp<U>
     where
         T: PartialOrd<U>,
     {
-        ToCmpAssertion::new(boundary, Ordering::Less, true, "less than or equal to")
+        ToCmp::new(boundary, Ordering::Less, true, "less than or equal to")
     }
 
     /// Asserts that the subject is greater than the given value.
@@ -283,11 +283,11 @@ pub trait GeneralAssertions<T, M> {
     /// expect!(1, to_be_greater_than(2));
     /// ```
     #[inline]
-    fn to_be_greater_than<U>(&self, boundary: Annotated<U>) -> ToCmpAssertion<U>
+    fn to_be_greater_than<U>(&self, boundary: Annotated<U>) -> ToCmp<U>
     where
         T: PartialOrd<U>,
     {
-        ToCmpAssertion::new(boundary, Ordering::Greater, false, "greater than")
+        ToCmp::new(boundary, Ordering::Greater, false, "greater than")
     }
 
     /// Asserts that the subject is greater than or equal to the given value.
@@ -305,11 +305,11 @@ pub trait GeneralAssertions<T, M> {
     /// expect!(1, to_be_greater_than_or_equal_to(2));
     /// ```
     #[inline]
-    fn to_be_greater_than_or_equal_to<U>(&self, boundary: Annotated<U>) -> ToCmpAssertion<U>
+    fn to_be_greater_than_or_equal_to<U>(&self, boundary: Annotated<U>) -> ToCmp<U>
     where
         T: PartialOrd<U>,
     {
-        ToCmpAssertion::new(
+        ToCmp::new(
             boundary,
             Ordering::Greater,
             true,
@@ -332,12 +332,12 @@ pub trait GeneralAssertions<T, M> {
     /// expect!(1, to_be_one_of([2, 3, 4]));
     /// ```
     #[inline]
-    fn to_be_one_of<I>(&self, items: Annotated<I>) -> ToBeOneOfAssertion<I>
+    fn to_be_one_of<I>(&self, items: Annotated<I>) -> ToBeOneOf<I>
     where
         I: IntoIterator,
         T: PartialEq<I::Item>,
     {
-        ToBeOneOfAssertion::new(items)
+        ToBeOneOf::new(items)
     }
 }
 

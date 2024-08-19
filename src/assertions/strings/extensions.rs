@@ -105,11 +105,11 @@ where
     #[inline]
     #[must_use]
     #[cfg(feature = "regex")]
-    fn to_match_regex<P>(&self, pattern: Annotated<P>) -> super::ToMatchRegexAssertion
+    fn to_match_regex<P>(&self, pattern: Annotated<P>) -> super::ToMatchRegex
     where
         P: AsRef<str>,
     {
-        super::ToMatchRegexAssertion::new(pattern.inner().as_ref())
+        super::ToMatchRegex::new(pattern.inner().as_ref())
     }
 }
 

@@ -1,6 +1,6 @@
 use crate::assertions::AssertionBuilder;
 
-use super::{ErrAndModifier, OkAndModifier, ResultVariant, Resultish, ToBeResultVariantAssertion};
+use super::{ErrAndModifier, OkAndModifier, ResultVariant, Resultish, ToBeResultVariant};
 
 /// Assertions and modifiers for [`Result`]s.
 pub trait ResultAssertions<T, M>
@@ -60,8 +60,8 @@ where
     /// ```
     #[inline]
     #[must_use]
-    fn to_be_ok(&self) -> ToBeResultVariantAssertion {
-        ToBeResultVariantAssertion::new(ResultVariant::Ok)
+    fn to_be_ok(&self) -> ToBeResultVariant {
+        ToBeResultVariant::new(ResultVariant::Ok)
     }
 
     /// Asserts that the subject holds an error.
@@ -81,8 +81,8 @@ where
     /// ```
     #[inline]
     #[must_use]
-    fn to_be_err(&self) -> ToBeResultVariantAssertion {
-        ToBeResultVariantAssertion::new(ResultVariant::Err)
+    fn to_be_err(&self) -> ToBeResultVariant {
+        ToBeResultVariant::new(ResultVariant::Err)
     }
 }
 

@@ -6,18 +6,18 @@ use crate::{
 
 /// Asserts that the subject is equal to the given sequence.
 #[derive(Clone, Debug)]
-pub struct ToContainExactlyAssertion<I> {
+pub struct ToContainExactly<I> {
     expected: Annotated<I>,
 }
 
-impl<I> ToContainExactlyAssertion<I> {
+impl<I> ToContainExactly<I> {
     #[inline]
     pub(crate) fn new(expected: Annotated<I>) -> Self {
         Self { expected }
     }
 }
 
-impl<I, T> Assertion<T> for ToContainExactlyAssertion<I>
+impl<I, T> Assertion<T> for ToContainExactly<I>
 where
     I: IntoIterator,
     T: IntoIterator<Item: PartialEq<I::Item>>,

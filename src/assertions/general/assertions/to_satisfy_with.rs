@@ -6,18 +6,18 @@ use crate::{
 
 /// Asserts that the subject satisfies a series of assertions.
 #[derive(Clone, Debug)]
-pub struct ToSatisfyWithAssertion<F> {
+pub struct ToSatisfyWith<F> {
     predicate: Annotated<F>,
 }
 
-impl<F> ToSatisfyWithAssertion<F> {
+impl<F> ToSatisfyWith<F> {
     #[inline]
     pub(crate) fn new(predicate: Annotated<F>) -> Self {
         Self { predicate }
     }
 }
 
-impl<F, T> Assertion<T> for ToSatisfyWithAssertion<F>
+impl<F, T> Assertion<T> for ToSatisfyWith<F>
 where
     F: FnOnce(T) -> Result<(), AssertionError>,
 {
