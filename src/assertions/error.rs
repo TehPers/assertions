@@ -173,7 +173,7 @@ impl Display for AssertionError {
             writeln!(
                 f,
                 "----- {title} {} -----",
-                styles::reference(&format_args!("[{}]", reference_idx))
+                styles::reference(&format_args!("[{reference_idx}]"))
             )?;
             writeln!(f, "{page}")?;
             writeln!(f)?;
