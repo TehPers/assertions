@@ -82,6 +82,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "diff")]
     fn do_diff() {
         // Show diffs for longer values
         expect!(
