@@ -220,7 +220,7 @@
 //!
 //! [`GeneralAssertions`]: crate::prelude::GeneralAssertions
 //! [`OptionAssertions`]: crate::prelude::OptionAssertions
-//! [`ToBeOptionVariantAssertion`]: options::ToBeOptionVariantAssertion
+//! [`ToBeOptionVariantAssertion`]: options::ToBeOptionVariant
 //! [`expect!`]: crate::expect!
 //! [`not`]: crate::prelude::GeneralAssertions::not
 //! [`to_be_none`]: crate::prelude::OptionAssertions::to_be_none
