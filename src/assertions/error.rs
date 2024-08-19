@@ -1,6 +1,6 @@
 use std::{
     error::Error,
-    fmt::{Debug, Display, Formatter, Write},
+    fmt::{Debug, Display, Formatter},
 };
 
 use crate::{assertions::ContextFrame, styles};
@@ -99,6 +99,16 @@ fn write_frame(f: &mut Formatter, frame: &ContextFrame, comment: &str) -> std::f
     Ok(())
 }
 
+#[derive(Clone)]
+struct Counter(usize);
+
+impl Counter {
+    pub fn next(&mut self) -> usize {
+        let next = self.0 + 1;
+        std::mem::replace(&mut self.0, next)
+    }
+}
+
 impl Display for AssertionError {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         writeln!(f, "assertion failed:")?;
@@ -119,26 +129,21 @@ impl Display for AssertionError {
         let mut idx = 0;
         let mut pages = Vec::new();
         let frames = self.cx.visited.iter().chain(self.cx.recovered.iter());
+        let mut reference_idxs = Counter(1);
         for frame in frames {
             let mut comment_parts = Vec::new();
 
             // Additional pages
             if !frame.pages.is_empty() {
-                // Track pages for later
-                let mut related_pages = String::new();
-                for page in &frame.pages {
-                    let page_idx = pages.len() + 1;
-                    if related_pages.is_empty() {
-                        write!(related_pages, "{page_idx}")?;
-                    } else {
-                        write!(related_pages, ", {page_idx}")?;
-                    }
+                let reference_idx = reference_idxs.next();
 
-                    pages.push(page);
+                // Track pages for later
+                for page in &frame.pages {
+                    pages.push((reference_idx, page));
                 }
 
                 // Write references to the comment
-                comment_parts.push(styles::reference(&format!("[{related_pages}]")).to_string());
+                comment_parts.push(styles::reference(&format!("[{reference_idx}]")).to_string());
             }
 
             // Error message
@@ -164,11 +169,11 @@ impl Display for AssertionError {
         }
 
         // Write context pages
-        for (idx, (title, page)) in pages.into_iter().enumerate() {
+        for (reference_idx, (title, page)) in pages {
             writeln!(
                 f,
                 "----- {title} {} -----",
-                styles::reference(&format_args!("[{}]", idx + 1))
+                styles::reference(&format_args!("[{}]", reference_idx))
             )?;
             writeln!(f, "{page}")?;
             writeln!(f)?;
@@ -179,3 +184,25 @@ impl Display for AssertionError {
 }
 
 impl Error for AssertionError {}
+
+#[cfg(test)]
+mod tests {
+    use crate::prelude::*;
+
+    use super::*;
+
+    #[test]
+    fn reference_idxs() {
+        let cx = AssertionContext::__new(String::new(), crate::source_loc!(), &["a"]).inner;
+        let mut cx = cx.next();
+        cx.add_page("first", "abcde");
+        cx.add_page("second", "fghij");
+
+        let error = AssertionError::new(cx, "test failure".into());
+        let message = error.to_string();
+
+        expect!(&message, to_contain_substr("first"));
+        expect!(&message, to_contain_substr("second"));
+        expect!(message.matches("[1]"), count, to_equal(3));
+    }
+}
