@@ -1,4 +1,5 @@
 #![cfg(feature = "futures")]
+#![allow(clippy::unused_async)]
 
 use expecters::prelude::*;
 

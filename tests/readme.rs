@@ -14,9 +14,12 @@ fn readme_example_is_correct() {
     let example = example["```rust".len()..example.len() - "```".len()]
         .trim()
         .replace("\r\n", "\n");
-    let test_contents = TEST_CONTENTS["#![cfg(feature = \"futures\")]".len()..]
+    let test_contents = TEST_CONTENTS
+        .splitn(3, '\n')
+        .last()
+        .unwrap()
         .split("#[ignore]")
-        .map(|s| s.trim())
+        .map(str::trim)
         .collect::<Vec<_>>()
         .join("\n")
         .replace("\r\n", "\n");
