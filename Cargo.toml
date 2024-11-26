@@ -5,7 +5,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 categories = ["asynchronous", "development-tools", "development-tools::testing"]
 keywords = ["assert", "assertions", "async", "matchers", "testing"]
-rust-version = "1.80.1"
+rust-version = "1.82.0"
 # TODO: remove this when ready to publish
 publish = false
 
@@ -26,11 +26,11 @@ owo-colors = { version = "4.0.0", features = [
     "supports-colors",
 ], optional = true }
 pin-project-lite = { version = "0.2.14", optional = true }
-regex = { version = "1.10.6", optional = true }
+regex = { version = "1.11.1", optional = true }
 
 [dev-dependencies]
 test-case = "3.3.1"
-tokio = { version = "1", features = ["macros", "test-util"] }
+tokio = { version = "1.41.1", features = ["macros", "test-util"] }
 
 [lints.rust]
 unsafe_code = "forbid"

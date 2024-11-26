@@ -61,9 +61,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: nightly
-          components: rustfmt
+        uses: dtolnay/rust-toolchain@1.82.0
       - name: Run tests
         run: cargo test --verbose ${{matrix.flags}}
