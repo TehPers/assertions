@@ -47,7 +47,7 @@ macro_rules! annotated {
 /// representations (due to [stringify]'s lack of guarantee). The string
 /// representation is *only* intended to be used to augment user-facing
 /// messages.
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Annotated<T> {
     value: T,
     stringified: &'static str,
