@@ -28,7 +28,10 @@ where
         // TODO: allow error context to be "added" to cx so failure messages
         // show the full execution path and not just the child path
         let result = (self.predicate.into_inner())(subject);
-        cx.pass_if(result.is_ok(), "inner assertions failed")
+        match result {
+            Ok(()) => cx.pass(),
+            Err(error) => cx.fail_with(error, "inner assertions failed"),
+        }
     }
 }
 
@@ -39,5 +42,20 @@ mod tests {
     #[test]
     fn vacuous() {
         expect!(1, to_satisfy_with(|_| Ok(())));
+    }
+
+    #[test]
+    fn inner_failure() {
+        expect!(
+            try_expect!(1, to_satisfy_with(|n| try_expect!(n, to_equal(2)))),
+            to_be_err_and,
+            as_display,
+            to_satisfy_with(|msg| {
+                try_expect!(&msg, to_contain_substr("CAUSED BY"))?;
+                try_expect!(&msg, to_contain_substr("to_equal"))?;
+                try_expect!(&msg, to_contain_substr("values not equal"))?;
+                Ok(())
+            }),
+        );
     }
 }

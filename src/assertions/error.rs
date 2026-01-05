@@ -176,11 +176,25 @@ impl Display for AssertionError {
             writeln!(f)?;
         }
 
+        // Write inner error
+        if let Some(inner) = &self.cx.inner {
+            writeln!(f, "{}", styles::caused_by(&"===== CAUSED BY ====="))?;
+            writeln!(f)?;
+            writeln!(f, "{inner}")?;
+        }
+
         Ok(())
     }
 }
 
-impl Error for AssertionError {}
+impl Error for AssertionError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match &self.cx.inner {
+            Some(inner) => Some(inner),
+            None => None,
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

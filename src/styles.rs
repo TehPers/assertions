@@ -24,6 +24,7 @@ macro_rules! maybe_styled {
 maybe_styled!(dimmed, [dimmed]);
 maybe_styled!(error, [bright_red]);
 maybe_styled!(reference, [yellow]);
+maybe_styled!(caused_by, [bold]);
 
 // Diffs
 maybe_styled!(added, [green]);

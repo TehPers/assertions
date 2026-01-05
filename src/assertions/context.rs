@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use std::{borrow::Cow, error::Error, sync::Arc};
 
 use crate::metadata::SourceLoc;
 
@@ -30,6 +30,7 @@ pub struct AssertionContext {
     pub(crate) visited: Vec<ContextFrame>,
     pub(crate) remaining: &'static [&'static str],
     pub(crate) recovered: Vec<ContextFrame>,
+    pub(crate) inner: Option<Arc<dyn Error + Send + Sync + 'static>>,
 }
 
 impl AssertionContext {
@@ -47,6 +48,7 @@ impl AssertionContext {
                 visited: vec![],
                 remaining: frames,
                 recovered: vec![],
+                inner: None,
             },
         }
     }
@@ -144,6 +146,21 @@ impl AssertionContext {
         O: InitializableOutput,
     {
         O::fail(self, message.to_string())
+    }
+
+    /// Sets the inner error for this context, then [fails](Self::fail).
+    ///
+    /// When this context is turned into an [`Error`], its
+    /// [source](Error::source) is set to the inner error. The inner error will
+    /// also be rendered in a separate section when rendering the error returned
+    /// by this function.
+    pub fn fail_with<O, E>(mut self, inner: E, message: impl ToString) -> O
+    where
+        O: InitializableOutput,
+        E: Error + Send + Sync + 'static,
+    {
+        self.inner = Some(Arc::new(inner));
+        self.fail(message)
     }
 
     /// Gets the source location for the assertion. This is the file, line,
