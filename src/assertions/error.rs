@@ -126,11 +126,10 @@ impl Display for AssertionError {
 
         // Write frames
         writeln!(f, "steps:")?;
-        let mut idx = 0;
         let mut pages = Vec::new();
         let frames = self.cx.visited.iter().chain(self.cx.recovered.iter());
         let mut reference_idxs = Counter(1);
-        for frame in frames {
+        for (idx, frame) in frames.enumerate() {
             let mut comment_parts = Vec::new();
 
             // Additional pages
@@ -158,14 +157,12 @@ impl Display for AssertionError {
                 format!(" {}", comment_parts.join(" "))
             };
             write_frame(f, frame, &comment)?;
-            idx += 1;
         }
 
         // Write non-visited frames
         for frame in &self.cx.remaining[self.cx.recovered.len()..] {
             writeln!(f, "  {frame}: {}", styles::dimmed(&"(not visited)"))?;
             writeln!(f)?;
-            idx += 1;
         }
 
         // Write context pages

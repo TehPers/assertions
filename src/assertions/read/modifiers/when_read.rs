@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::io::{BufReader, Read};
 
 use crate::assertions::{
     general::IntoInitializableOutput, Assertion, AssertionContext, AssertionContextBuilder,
@@ -43,7 +43,10 @@ where
     type Output = <A::Output as IntoInitializableOutput>::Initialized;
 
     fn execute(self, mut cx: AssertionContext, subject: T) -> Self::Output {
-        let bytes = match subject.bytes().collect::<Result<Vec<_>, _>>() {
+        let bytes = match BufReader::new(subject)
+            .bytes()
+            .collect::<Result<Vec<_>, _>>()
+        {
             Ok(bytes) => bytes,
             Err(error) => {
                 cx.annotate("error", &error);

@@ -55,7 +55,7 @@ where
 
     #[inline]
     fn execute(self, mut cx: AssertionContext, subject: T) -> Self::Output {
-        cx.annotate("index", &self.index);
+        cx.annotate("index", self.index);
 
         let index = self.index.into_inner();
         let Some(subject) = subject.into_iter().nth(index) else {

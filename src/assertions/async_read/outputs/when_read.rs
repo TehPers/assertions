@@ -62,7 +62,7 @@ where
                     cx.annotate("error", error);
                     return Poll::Ready(cx.fail("failed to read"));
                 }
-            };
+            }
         }
 
         let (mut cx, next) = projected.next.take().expect("poll after ready");
