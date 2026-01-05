@@ -1,4 +1,9 @@
-use crate::{assertions::AssertionBuilder, metadata::Annotated};
+use std::iter::Zip;
+
+use crate::{
+    assertions::{iterators::ZipModifier, AssertionBuilder},
+    metadata::Annotated,
+};
 
 use super::{
     AsUtf8Modifier, CountModifier, MergeModifier, MergeStrategy, NthModifier, ToContain,
@@ -123,6 +128,34 @@ where
     /// ```
     fn nth(self, index: Annotated<usize>) -> AssertionBuilder<T::Item, NthModifier<M>>;
 
+    /// [Zips](Iterator::zip) this iterator with another one.
+    ///
+    /// The assertion will be executed on the zipped iterator.
+    ///
+    /// ```
+    /// # use expecters::prelude::*;
+    /// expect!([1, 2, 3], zip([4, 5, 6]), to_contain((2, 5)));
+    /// ```
+    ///
+    /// This can be used to execute more complex assertions which compare two
+    /// iterators:
+    ///
+    /// ```
+    /// # use expecters::prelude::*;
+    /// expect!(
+    ///     [1, 2, 3],
+    ///     zip([4, 5, 6]),
+    ///     all,
+    ///     to_satisfy_with(|(a, b)| try_expect!(a + 3, to_equal(b))),
+    /// );
+    /// ```
+    fn zip<I>(
+        self,
+        other: Annotated<I>,
+    ) -> AssertionBuilder<Zip<T::IntoIter, I::IntoIter>, ZipModifier<I, M>>
+    where
+        I: IntoIterator;
+
     /// Reads the subject as a UTF-8 encoded string.
     ///
     /// ```
@@ -208,6 +241,17 @@ where
     #[inline]
     fn nth(self, index: Annotated<usize>) -> AssertionBuilder<T::Item, NthModifier<M>> {
         AssertionBuilder::modify(self, move |prev| NthModifier::new(prev, index))
+    }
+
+    #[inline]
+    fn zip<I>(
+        self,
+        other: Annotated<I>,
+    ) -> AssertionBuilder<Zip<<T as IntoIterator>::IntoIter, I::IntoIter>, ZipModifier<I, M>>
+    where
+        I: IntoIterator,
+    {
+        AssertionBuilder::modify(self, move |prev| ZipModifier::new(prev, other))
     }
 
     #[inline]

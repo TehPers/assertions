@@ -197,6 +197,7 @@ directory.
 | `any`     | at least one item satisfies assertion |
 | `count`   | counts items                          |
 | `nth`     | gets nth item                         |
+| `zip`     | zips two iterators                    |
 | `as_utf8` | parses as utf8                        |
 
 ### Readers
