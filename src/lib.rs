@@ -74,6 +74,9 @@
 //! - `colors`*: Enables styled failure messages. Styled messages can always be
 //!   disabled by setting `NO_COLOR`.
 
+// This can't be in Cargo.toml or it'll require tests to also have docs
+#![warn(missing_docs)]
+
 pub mod assertions;
 pub mod metadata;
 pub mod prelude;

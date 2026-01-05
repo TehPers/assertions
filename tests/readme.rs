@@ -18,7 +18,7 @@ fn readme_example_is_correct() {
         .splitn(3, '\n')
         .last()
         .unwrap()
-        .split("#[ignore]")
+        .split(r#"#[ignore = "run this test manually to see the output"]"#)
         .map(str::trim)
         .collect::<Vec<_>>()
         .join("\n")

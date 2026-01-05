@@ -4,7 +4,7 @@
 use expecters::prelude::*;
 
 #[tokio::test]
-#[ignore]
+#[ignore = "run this test manually to see the output"]
 async fn test() {
     expect!(1, as_display, to_equal("1"));
     expect!(1..=5, count, to_equal(5));
