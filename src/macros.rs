@@ -144,7 +144,6 @@
 /// informative error messages.
 ///
 /// [`Annotated<T>`]: crate::metadata::Annotated
-/// [`AnnotatedAssertion<A, T>`]: crate::assertions::AnnotatedAssertion
 /// [`Debug`]: std::fmt::Debug
 /// [`Display`]: std::fmt::Display
 /// [`all`]: crate::prelude::IteratorAssertions::all
