@@ -1,4 +1,4 @@
-# TODO: name
+# Expecters
 
 Build complex, self-describing assertions by chaining together reusable methods.
 Supports both synchronous and asynchronous assertions.
