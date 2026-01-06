@@ -33,6 +33,13 @@ impl InitializableOutput for AssertionOutput {
 
 /// An output type that can be converted into an
 /// [initializable output type](InitializableOutput).
+///
+/// This allows assertions to succeed or fail on their own rather than
+/// returning a result from a different assertion. An assertion's output
+/// must implement [`InitializableOutput`] to call [`pass`] or [`fail`].
+///
+/// [`pass`]: AssertionContext::pass
+/// [`fail`]: AssertionContext::fail
 pub trait IntoInitializableOutput {
     /// The initialized output type.
     ///
@@ -42,9 +49,6 @@ pub trait IntoInitializableOutput {
     type Initialized: InitializableOutput;
 
     /// Converts this output into an instance of the initialized output type.
-    ///
-    /// This is important to ensure that an existing instance of this output can
-    /// be converted to the success/failure types this output can produce.
     fn into_initialized(self) -> Self::Initialized;
 }
 
