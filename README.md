@@ -200,6 +200,28 @@ directory.
 | `zip`     | zips two iterators                    |
 | `as_utf8` | parses as utf8                        |
 
+### Functions
+
+| Assertion  | Description |
+| ---------- | ----------- |
+| `to_panic` | f() panics  |
+
+| Modifier      | Description |
+| ------------- | ----------- |
+| `when_called` | calls f()   |
+
+> [!NOTE]
+> Functions that accept arguments are not supported, but you can wrap function
+> calls in closures that take no arguments to use them here:
+>
+> ```rs
+> fn add(a: i32, b: i32) -> i32 {
+>     a + b
+> }
+>
+> expect!(|| add(1, 2), not, to_panic);
+> ```
+
 ### Readers
 
 | Modifier          | Description                           | Requires feature |

@@ -229,6 +229,7 @@
 
 #[cfg(feature = "futures")]
 pub mod async_read;
+pub mod functions;
 #[cfg(feature = "futures")]
 pub mod futures;
 pub mod general;
