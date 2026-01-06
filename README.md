@@ -222,6 +222,13 @@ directory.
 > expect!(|| add(1, 2), not, to_panic);
 > ```
 
+### Pointers
+
+| Assertion     | Description   |
+| ------------- | ------------- |
+| `to_be_null`  | x.is_null()   |
+| `to_point_to` | ptr::eq(x, y) |
+
 ### Readers
 
 | Modifier          | Description                           | Requires feature |
