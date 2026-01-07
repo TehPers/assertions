@@ -1,31 +1,37 @@
 use std::panic::{catch_unwind, UnwindSafe};
 
 use crate::{
-    assertions::{Assertion, AssertionContext},
+    assertions::{functions::ApplyFnOnceUnwindSafe, Assertion, AssertionContext},
+    metadata::Annotated,
     AssertionOutput,
 };
 
 /// Asserts that the subject function panics when called.
 #[derive(Clone, Debug)]
-#[non_exhaustive]
-pub struct ToPanic {}
+pub struct ToPanic<I = ()> {
+    args: Annotated<I>,
+}
 
-impl ToPanic {
+impl<I> ToPanic<I> {
     #[inline]
-    pub(crate) fn new() -> Self {
-        Self {}
+    pub(crate) fn new(args: Annotated<I>) -> Self {
+        Self { args }
     }
 }
 
-impl<F, O> Assertion<F> for ToPanic
+impl<F, I> Assertion<F> for ToPanic<I>
 where
-    F: FnOnce() -> O + UnwindSafe,
+    F: ApplyFnOnceUnwindSafe<I> + UnwindSafe,
 {
     type Output = AssertionOutput;
 
     #[inline]
-    fn execute(self, cx: AssertionContext, subject: F) -> Self::Output {
-        let result = catch_unwind(subject);
+    fn execute(self, mut cx: AssertionContext, subject: F) -> Self::Output {
+        if !F::EMPTY_ARGS {
+            cx.annotate("args", &self.args);
+        }
+
+        let result = catch_unwind(subject.apply_once_unwind(self.args.into_inner()));
         cx.pass_if(result.is_err(), "did not panic")
     }
 }

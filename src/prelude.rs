@@ -13,7 +13,7 @@
 
 pub use crate::{
     assertions::{
-        functions::FunctionAssertions,
+        functions::{FunctionAssertions, SimpleFunctionAssertions},
         general::GeneralAssertions,
         iterators::IteratorAssertions,
         options::OptionAssertions,
