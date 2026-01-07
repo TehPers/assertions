@@ -229,6 +229,14 @@ directory.
 | `to_be_null`  | x.is_null()   |
 | `to_point_to` | ptr::eq(x, y) |
 
+| Modifier | Description           |
+| -------- | --------------------- |
+| `as_ptr` | convert to `*const T` |
+
+> [!NOTE]
+> These assertions and modifiers apply to pointer-like values, meaning you can
+> use them with types like `&T` and `Arc<T>`.
+
 ### Readers
 
 | Modifier          | Description                           | Requires feature |

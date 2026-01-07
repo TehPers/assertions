@@ -1,6 +1,6 @@
 use crate::{
     assertions::{
-        pointers::{PointerLike, ToBeNull, ToPointTo},
+        pointers::{AsPtrModifier, PointerLike, ToBeNull, ToPointTo},
         AssertionBuilder,
     },
     metadata::Annotated,
@@ -11,6 +11,17 @@ pub trait PointerAssertions<T, M>
 where
     T: PointerLike,
 {
+    /// Converts the subject to a raw pointer.
+    ///
+    /// ```
+    /// # use expecters::prelude::*;
+    /// let a = Box::new(1);
+    /// let ptr = &raw const *a;
+    /// expect!(a, as_ptr, to_equal(ptr));
+    /// ```
+    #[allow(clippy::wrong_self_convention)]
+    fn as_ptr(self) -> AssertionBuilder<*const T::Target, AsPtrModifier<M>>;
+
     /// Asserts that the subject is the null pointer.
     ///
     /// Note that this does not make sense for pointers that cannot be null,
@@ -57,4 +68,12 @@ where
     }
 }
 
-impl<T, M> PointerAssertions<T, M> for AssertionBuilder<T, M> where T: PointerLike {}
+impl<T, M> PointerAssertions<T, M> for AssertionBuilder<T, M>
+where
+    T: PointerLike,
+{
+    #[inline]
+    fn as_ptr(self) -> AssertionBuilder<*const <T as PointerLike>::Target, AsPtrModifier<M>> {
+        AssertionBuilder::modify(self, AsPtrModifier::new)
+    }
+}
