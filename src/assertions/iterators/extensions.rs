@@ -146,7 +146,7 @@ where
     ///     [1, 2, 3],
     ///     zip([4, 5, 6]),
     ///     all,
-    ///     to_satisfy_with(|(a, b)| try_expect!(a + 3, to_equal(b))),
+    ///     to_satisfy(|(a, b)| a + 3 == b),
     /// );
     /// ```
     fn zip<I>(
