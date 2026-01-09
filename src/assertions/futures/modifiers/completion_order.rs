@@ -1,4 +1,4 @@
-use std::future::Future;
+use std::future::IntoFuture;
 
 use crate::{
     assertions::{
@@ -54,15 +54,21 @@ pub struct CompletionOrderAssertion<Fut, A> {
 
 impl<Fut, A, T> Assertion<T> for CompletionOrderAssertion<Fut, A>
 where
-    Fut: Future,
+    Fut: IntoFuture,
     A: Assertion<T::Output>,
-    T: Future,
+    T: IntoFuture,
 {
-    type Output = CompletionOrderFuture<Fut, T, A>;
+    type Output = CompletionOrderFuture<Fut::IntoFuture, T::IntoFuture, A>;
 
     #[inline]
     fn execute(self, mut cx: AssertionContext, subject: T) -> Self::Output {
         cx.annotate("other", &self.fut);
-        CompletionOrderFuture::new(cx, subject, self.fut.into_inner(), self.next, self.order)
+        CompletionOrderFuture::new(
+            cx,
+            subject.into_future(),
+            self.fut.into_inner().into_future(),
+            self.next,
+            self.order,
+        )
     }
 }

@@ -1,4 +1,4 @@
-use std::future::Future;
+use std::future::IntoFuture;
 
 use crate::{assertions::AssertionBuilder, metadata::Annotated};
 
@@ -7,7 +7,7 @@ use super::{CompletionOrder, CompletionOrderModifier, WhenReadyModifier};
 /// Assertions and modifiers for [Future]s.
 pub trait FutureAssertions<T, M>
 where
-    T: Future,
+    T: IntoFuture,
 {
     /// Executes an assertion on the output of a future.
     ///
@@ -80,7 +80,7 @@ where
         other: Annotated<Fut>,
     ) -> AssertionBuilder<T::Output, CompletionOrderModifier<Fut, M>>
     where
-        Fut: Future;
+        Fut: IntoFuture;
 
     /// Executes an assertion on the output of a future, but only if it does not
     /// complete before another future.
@@ -118,12 +118,12 @@ where
         other: Annotated<Fut>,
     ) -> AssertionBuilder<T::Output, CompletionOrderModifier<Fut, M>>
     where
-        Fut: Future;
+        Fut: IntoFuture;
 }
 
 impl<T, M> FutureAssertions<T, M> for AssertionBuilder<T, M>
 where
-    T: Future,
+    T: IntoFuture,
 {
     #[inline]
     fn when_ready(self) -> AssertionBuilder<T::Output, WhenReadyModifier<M>> {
@@ -136,7 +136,7 @@ where
         other: Annotated<Fut>,
     ) -> AssertionBuilder<T::Output, CompletionOrderModifier<Fut, M>>
     where
-        Fut: Future,
+        Fut: IntoFuture,
     {
         AssertionBuilder::modify(self, move |prev| {
             CompletionOrderModifier::new(prev, other, CompletionOrder::Before)
@@ -149,7 +149,7 @@ where
         other: Annotated<Fut>,
     ) -> AssertionBuilder<T::Output, CompletionOrderModifier<Fut, M>>
     where
-        Fut: Future,
+        Fut: IntoFuture,
     {
         AssertionBuilder::modify(self, move |prev| {
             CompletionOrderModifier::new(prev, other, CompletionOrder::After)

@@ -1,4 +1,4 @@
-use std::future::Future;
+use std::future::IntoFuture;
 
 use crate::assertions::{
     futures::WhenReadyFuture, Assertion, AssertionContext, AssertionContextBuilder,
@@ -38,13 +38,13 @@ pub struct WhenReadyAssertion<A> {
 
 impl<A, T> Assertion<T> for WhenReadyAssertion<A>
 where
-    T: Future,
+    T: IntoFuture,
     A: Assertion<T::Output>,
 {
-    type Output = WhenReadyFuture<T, A>;
+    type Output = WhenReadyFuture<T::IntoFuture, A>;
 
     #[inline]
     fn execute(self, cx: AssertionContext, subject: T) -> Self::Output {
-        WhenReadyFuture::new(cx, subject, self.next)
+        WhenReadyFuture::new(cx, subject.into_future(), self.next)
     }
 }
