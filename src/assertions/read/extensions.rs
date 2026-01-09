@@ -5,7 +5,7 @@ use crate::assertions::AssertionBuilder;
 use super::WhenReadModifier;
 
 /// Modifiers for types that implement [`Read`].
-pub trait ReadExtensions<T, M>
+pub trait ReadAssertions<T, M>
 where
     T: Read,
 {
@@ -46,7 +46,7 @@ where
     fn when_read(self) -> AssertionBuilder<Vec<u8>, WhenReadModifier<M>>;
 }
 
-impl<T, M> ReadExtensions<T, M> for AssertionBuilder<T, M>
+impl<T, M> ReadAssertions<T, M> for AssertionBuilder<T, M>
 where
     T: Read,
 {

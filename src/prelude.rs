@@ -18,7 +18,7 @@ pub use crate::{
         iterators::IteratorAssertions,
         options::OptionAssertions,
         pointers::PointerAssertions,
-        read::ReadExtensions,
+        read::ReadAssertions,
         results::ResultAssertions,
         strings::{DebugAssertions, DisplayAssertions, StringAssertions},
     },
