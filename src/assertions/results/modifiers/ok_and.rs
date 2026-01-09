@@ -36,7 +36,7 @@ pub struct OkAndAssertion<A> {
 
 impl<A, R> Assertion<R> for OkAndAssertion<A>
 where
-    A: Assertion<R::OutT, Output: IntoInitializableOutput>,
+    A: Assertion<R::Inner, Output: IntoInitializableOutput>,
     R: Resultish,
 {
     type Output = <A::Output as IntoInitializableOutput>::Initialized;

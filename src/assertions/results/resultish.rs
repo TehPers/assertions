@@ -1,65 +1,53 @@
 mod sealed {
     pub trait Sealed {
-        type T;
-        type E;
+        type Inner;
+        type Error;
 
-        type OutT;
-        type OutE;
-
-        fn ok(self) -> Option<Self::OutT>;
-        fn err(self) -> Option<Self::OutE>;
+        fn ok(self) -> Option<Self::Inner>;
+        fn err(self) -> Option<Self::Error>;
     }
 
     impl<T, E> Sealed for Result<T, E> {
-        type T = T;
-        type E = E;
-
-        type OutT = T;
-        type OutE = E;
+        type Inner = T;
+        type Error = E;
 
         #[inline]
-        fn ok(self) -> Option<Self::OutT> {
+        fn ok(self) -> Option<Self::Inner> {
             self.ok()
         }
 
         #[inline]
-        fn err(self) -> Option<Self::OutE> {
+        fn err(self) -> Option<Self::Error> {
             self.err()
         }
     }
 
     impl<'a, T, E> Sealed for &'a Result<T, E> {
-        type T = T;
-        type E = E;
-
-        type OutT = &'a T;
-        type OutE = &'a E;
+        type Inner = &'a T;
+        type Error = &'a E;
 
         #[inline]
-        fn ok(self) -> Option<Self::OutT> {
+        fn ok(self) -> Option<Self::Inner> {
             self.as_ref().ok()
         }
 
         #[inline]
-        fn err(self) -> Option<Self::OutE> {
+        fn err(self) -> Option<Self::Error> {
             self.as_ref().err()
         }
     }
 
     impl<'a, T, E> Sealed for &'a mut Result<T, E> {
-        type T = T;
-        type E = E;
-
-        type OutT = &'a mut T;
-        type OutE = &'a mut E;
+        type Inner = &'a mut T;
+        type Error = &'a mut E;
 
         #[inline]
-        fn ok(self) -> Option<Self::OutT> {
+        fn ok(self) -> Option<Self::Inner> {
             self.as_mut().ok()
         }
 
         #[inline]
-        fn err(self) -> Option<Self::OutE> {
+        fn err(self) -> Option<Self::Error> {
             self.as_mut().err()
         }
     }

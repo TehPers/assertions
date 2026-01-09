@@ -36,7 +36,7 @@ pub struct ErrAndAssertion<A> {
 
 impl<A, R> Assertion<R> for ErrAndAssertion<A>
 where
-    A: Assertion<R::OutE, Output: IntoInitializableOutput>,
+    A: Assertion<R::Error, Output: IntoInitializableOutput>,
     R: Resultish,
 {
     type Output = <A::Output as IntoInitializableOutput>::Initialized;

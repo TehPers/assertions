@@ -21,7 +21,7 @@ where
     /// # use expecters::prelude::*;
     /// expect!(None::<i32>, to_be_some_and, to_equal(2));
     /// ```
-    fn to_be_some_and(self) -> AssertionBuilder<T::OutT, SomeAndModifier<M>>;
+    fn to_be_some_and(self) -> AssertionBuilder<T::Inner, SomeAndModifier<M>>;
 
     /// Asserts that the subject holds a value.
     ///
@@ -67,7 +67,7 @@ where
     T: Optionish,
 {
     #[inline]
-    fn to_be_some_and(self) -> AssertionBuilder<T::OutT, SomeAndModifier<M>> {
+    fn to_be_some_and(self) -> AssertionBuilder<T::Inner, SomeAndModifier<M>> {
         AssertionBuilder::modify(self, SomeAndModifier::new)
     }
 }

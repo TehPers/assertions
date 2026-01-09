@@ -23,7 +23,7 @@ where
     /// let subject: Result<i32, &str> = Err("error");
     /// expect!(subject, to_be_ok_and, to_equal(1));
     /// ```
-    fn to_be_ok_and(self) -> AssertionBuilder<T::OutT, OkAndModifier<M>>;
+    fn to_be_ok_and(self) -> AssertionBuilder<T::Inner, OkAndModifier<M>>;
 
     /// Asserts that the target holds an error, then continues the assertion with
     /// the contained value.
@@ -41,7 +41,7 @@ where
     /// let result: Result<i32, &str> = Ok(1);
     /// expect!(result, to_be_err_and, to_equal("error"));
     /// ```
-    fn to_be_err_and(self) -> AssertionBuilder<T::OutE, ErrAndModifier<M>>;
+    fn to_be_err_and(self) -> AssertionBuilder<T::Error, ErrAndModifier<M>>;
 
     /// Asserts that the target holds a success.
     ///
@@ -91,12 +91,12 @@ where
     T: Resultish,
 {
     #[inline]
-    fn to_be_ok_and(self) -> AssertionBuilder<T::OutT, OkAndModifier<M>> {
+    fn to_be_ok_and(self) -> AssertionBuilder<T::Inner, OkAndModifier<M>> {
         AssertionBuilder::modify(self, OkAndModifier::new)
     }
 
     #[inline]
-    fn to_be_err_and(self) -> AssertionBuilder<T::OutE, ErrAndModifier<M>> {
+    fn to_be_err_and(self) -> AssertionBuilder<T::Error, ErrAndModifier<M>> {
         AssertionBuilder::modify(self, ErrAndModifier::new)
     }
 }

@@ -1,37 +1,33 @@
 mod sealed {
     pub trait Sealed {
-        type T;
-        type OutT;
+        type Inner;
 
-        fn some(self) -> Option<Self::OutT>;
+        fn some(self) -> Option<Self::Inner>;
     }
 
     impl<T> Sealed for Option<T> {
-        type T = T;
-        type OutT = T;
+        type Inner = T;
 
         #[inline]
-        fn some(self) -> Option<Self::OutT> {
+        fn some(self) -> Option<Self::Inner> {
             self
         }
     }
 
     impl<'a, T> Sealed for &'a Option<T> {
-        type T = T;
-        type OutT = &'a T;
+        type Inner = &'a T;
 
         #[inline]
-        fn some(self) -> Option<Self::OutT> {
+        fn some(self) -> Option<Self::Inner> {
             self.as_ref()
         }
     }
 
     impl<'a, T> Sealed for &'a mut Option<T> {
-        type T = T;
-        type OutT = &'a mut T;
+        type Inner = &'a mut T;
 
         #[inline]
-        fn some(self) -> Option<Self::OutT> {
+        fn some(self) -> Option<Self::Inner> {
             self.as_mut()
         }
     }
