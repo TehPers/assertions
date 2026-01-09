@@ -4,7 +4,7 @@ use crate::{assertions::AssertionBuilder, metadata::Annotated};
 
 use super::{CompletionOrder, CompletionOrderModifier, WhenReadyModifier};
 
-/// Assertions and modifiers for [Future]s.
+/// Assertions and modifiers for futures.
 pub trait FutureAssertions<T, M>
 where
     T: IntoFuture,
