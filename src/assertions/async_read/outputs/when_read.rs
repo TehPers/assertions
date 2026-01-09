@@ -53,8 +53,7 @@ where
 
                     // Check if we can grow the buffer for the next read
                     if n == projected.buffer.len() {
-                        projected.buffer.reserve(32);
-                        projected.buffer.resize(projected.buffer.capacity(), 0);
+                        projected.buffer.resize(projected.buffer.len() + 32, 0);
                     }
                 }
                 Err(error) => {
